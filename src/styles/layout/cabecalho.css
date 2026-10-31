@@ -1,0 +1,86 @@
+/* =====================================================================
+   layout/cabecalho.css — barra marrom com logo, menu, busca e carrinho
+   ===================================================================== */
+.cabecalho {
+  position: sticky; top: 0; z-index: 40;
+  background: var(--marrom);
+  color: var(--creme);
+}
+.cabecalho__barra {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  height: var(--altura-cabecalho);
+}
+
+/* ---------- Logo ---------- */
+.logo { display: flex; align-items: center; flex-shrink: 0; border-radius: 12px; text-decoration: none; }
+/* O PNG tem margens transparentes: as margens negativas "cortam" esse
+   espaço vazio para a logo ficar grande sem aumentar o cabeçalho.
+   O contorno branco (tipo adesivo) deixa a logo escura legível no fundo marrom. */
+.logo__imagem {
+  position: relative; z-index: 3;
+  width: 110px; height: 110px;
+  max-width: none;     /* sem isso o reset (img max-width: 100%) achata a largura e estica a logo */
+  object-fit: contain; /* nunca distorce, mesmo se trocarem por um arquivo não quadrado */
+  margin: -16px -16px -30px -13px; /* avança um pouco sobre a onda */
+  filter:
+    drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff)
+    drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff)
+    drop-shadow(0 3px 0 rgba(0, 0, 0, .3));
+  transition: transform .25s ease;
+}
+.logo:hover .logo__imagem { transform: rotate(-3deg) scale(1.04); }
+
+.acoes { display: flex; align-items: center; gap: 2px; }
+
+/* ---------- Menu (no celular: lista que desce do cabeçalho) ---------- */
+.menu {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 2;
+  padding: 8px 18px 28px;
+  background: var(--marrom);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, .15);
+  opacity: 0; visibility: hidden; transform: translateY(-12px);
+  transition: opacity .25s ease, transform .25s ease, visibility .25s;
+}
+.menu.aberto { opacity: 1; visibility: visible; transform: none; }
+.menu ul { display: grid; gap: 4px; }
+.menu a {
+  display: block; padding: 12px 6px;
+  border-bottom: 1px solid rgba(251, 241, 230, .12);
+  font-family: var(--fonte-manuscrita); font-size: 1.35rem;
+  color: var(--creme); text-decoration: none;
+}
+.menu a.ativo { color: var(--rosa); }
+
+/* ---------- Busca ---------- */
+.busca { padding: 4px 0 14px; background: var(--marrom); }
+.busca__campo {
+  display: flex; align-items: center; gap: 10px;
+  max-width: 560px; margin-inline: auto; padding: 4px 16px;
+  border-radius: 999px; background: var(--creme);
+}
+.busca__campo svg { width: 20px; height: 20px; color: var(--rosa-escuro); flex-shrink: 0; }
+.busca__campo input { flex: 1; min-width: 0; padding: 8px 0; border: 0; background: transparent; color: var(--texto); }
+.busca__campo input:focus { outline: none; }
+.busca__campo:focus-within { outline: 3px solid var(--rosa); outline-offset: 2px; }
+
+/* ---------- Computador: menu horizontal no centro ---------- */
+@media (min-width: 900px) {
+  .menu-btn { display: none; }
+  .menu {
+    position: static; z-index: auto;
+    padding: 0; background: none; box-shadow: none;
+    opacity: 1; visibility: visible; transform: none;
+  }
+  .menu ul { display: flex; gap: 46px; }
+  .menu a { position: relative; padding: 6px 2px; border: 0; font-size: 1.3rem; }
+  .menu a::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 3px;
+    border-radius: 3px; background: var(--rosa-escuro);
+    transform: scaleX(0); transition: transform .25s ease;
+  }
+  .menu a:hover::after, .menu a.ativo::after { transform: scaleX(1); }
+  .menu a.ativo { color: var(--creme); }
+
+  .logo__imagem { width: 150px; height: 150px; margin: -20px -20px -42px -18px; }
+  .acoes { gap: 10px; }
+}

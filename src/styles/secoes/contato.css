@@ -1,0 +1,11 @@
+/* =====================================================================
+   secoes/contato.css — botão do WhatsApp, Instagram e região
+   ===================================================================== */
+.contato { display: grid; justify-items: center; gap: 16px; padding-bottom: 90px; text-align: center; }
+.contato h2 { display: inline-flex; align-items: center; gap: 12px; }
+.contato__chamada { max-width: 460px; }
+
+.contato__infos { display: grid; gap: 10px; margin-top: 8px; }
+.contato__infos li { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.contato__infos svg { width: 22px; height: 22px; flex-shrink: 0; color: var(--rosa-escuro); }
+.contato__infos a { font-weight: 700; }

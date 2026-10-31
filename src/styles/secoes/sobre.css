@@ -1,0 +1,44 @@
+/* =====================================================================
+   secoes/sobre.css — "Nosso propósito" (centralizado) + "Sobre nós"
+   ===================================================================== */
+.sobre { display: grid; gap: 34px; padding-bottom: 56px; }
+
+/* ---------- Nosso propósito ---------- */
+.proposito { display: grid; justify-items: center; padding-top: 24px; }
+/* Largura limitada para os corações e risquinhos ficarem perto do texto */
+.proposito__titulo { position: relative; width: 100%; max-width: 620px; padding: 4px 18px 0 26px; text-align: center; }
+.proposito__titulo h2 { display: grid; justify-items: center; gap: 6px; }
+.titulo-grande { display: inline-block; font-size: 2.5rem; line-height: 1.1; transform: rotate(-3deg); }
+.proposito__frase {
+  display: inline-block; padding-bottom: 10px;
+  font-size: 1.5rem; line-height: 1.25; transform: rotate(-3deg);
+  background: linear-gradient(var(--texto), var(--texto)) no-repeat 50% 100% / 45% 3px;
+}
+.deco { position: absolute; color: var(--texto); }
+.deco--coracao-a { left: -6px; top: -26px; width: 34px; height: 34px; transform: rotate(-12deg); }
+.deco--coracao-b { right: 4px; bottom: -10px; width: 30px; height: 30px; color: var(--rosa-escuro); transform: rotate(14deg); }
+.deco--risco { left: -2px; top: 52%; width: 22px; height: 22px; }
+
+/* ---------- Sobre nós ---------- */
+.sobre__cartao {
+  display: grid; gap: 18px; justify-items: center;
+  padding: 30px 22px;
+  border: 2px dashed var(--rosa-borda); border-radius: 24px;
+  background: var(--branco-quente);
+  text-align: center;
+}
+.sobre__gato { width: 110px; height: 104px; }
+.sobre__cartao h2 { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sobre__texto { display: grid; gap: 12px; max-width: 640px; }
+
+@media (min-width: 768px) {
+  .sobre__cartao {
+    grid-template-columns: auto 1fr; align-items: center; justify-items: start; gap: 34px;
+    padding: 36px 44px; text-align: left;
+  }
+  .sobre__gato { width: 150px; height: 142px; }
+}
+
+@media (min-width: 1100px) {
+  .titulo-grande { white-space: nowrap; }
+}

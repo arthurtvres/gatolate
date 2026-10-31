@@ -1,0 +1,22 @@
+/* =====================================================================
+   Estilos do site, na ordem: base → componentes → layout → seções.
+   (Os mais específicos vêm depois, para poderem ajustar os genéricos.)
+   O Vite junta tudo num único arquivo na hora de publicar.
+   ===================================================================== */
+@import "./base/variaveis.css";
+@import "./base/reset.css";
+@import "./base/decoracoes.css";
+
+@import "./componentes/botoes.css";
+@import "./componentes/card-produto.css";
+@import "./componentes/carrinho.css";
+@import "./componentes/formulario.css";
+@import "./componentes/modal-produto.css";
+@import "./componentes/toast.css";
+
+@import "./layout/cabecalho.css";
+@import "./layout/rodape.css";
+
+@import "./secoes/produtos.css";
+@import "./secoes/sobre.css";
+@import "./secoes/contato.css";

@@ -1,0 +1,53 @@
+/* =====================================================================
+   base/decoracoes.css — enfeites desenhados: risquinhos, corações,
+   manchas de pincel, ondas e divisor
+   ===================================================================== */
+
+/* Risquinhos ao lado dos títulos */
+.deco-risco { width: .8em; height: .8em; color: var(--texto); vertical-align: middle; flex-shrink: 0; }
+.espelhado { transform: scaleX(-1); }
+
+/* Coração pequeno no fim de frases */
+.coracaozinho { width: 1em; height: 1em; color: var(--rosa-escuro); vertical-align: -2px; }
+
+/* Mancha rosa com borda de pincel: o fundo fica num pseudo-elemento
+   com filtro SVG (#pincel no index.html), assim o texto não é distorcido. */
+.pincel { position: relative; isolation: isolate; }
+.pincel::before {
+  content: "";
+  position: absolute; inset: 0; z-index: -1;
+  background: var(--rosa);
+  border-radius: 255px 25px 225px 20px / 20px 225px 25px 255px;
+  filter: url(#pincel);
+}
+
+/* Onda (borda inferior do cabeçalho / superior do rodapé) */
+.onda {
+  height: 16px;
+  background: var(--onda) repeat-x left top / 120px 16px;
+}
+.onda--baixo { position: absolute; left: 0; right: 0; top: 100%; }
+.onda--cima { position: absolute; left: 0; right: 0; bottom: 100%; transform: scaleY(-1); }
+
+/* Divisor: linha ondulada com coração no meio */
+.divisor { display: flex; align-items: center; gap: 12px; padding-block: 18px; }
+.divisor__linha { flex: 1; height: 10px; background: var(--linha-ondulada) repeat-x center / 40px 10px; }
+.divisor svg { width: 28px; height: 28px; color: var(--rosa-escuro); }
+
+/* Título de seção centralizado ("Nossos Brownies", "Contato"...) */
+.secao-titulo { display: grid; justify-items: center; text-align: center; margin-bottom: 30px; }
+.secao-titulo h1,
+.secao-titulo h2 {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-size: 2.2rem; line-height: 1.1;
+}
+.secao-titulo p {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 1.2rem; margin-top: 6px;
+}
+.secao-titulo p svg { width: 20px; height: 20px; color: var(--rosa-escuro); flex-shrink: 0; }
+
+@media (min-width: 560px) {
+  .secao-titulo h1, .secao-titulo h2 { font-size: 2.6rem; }
+  .secao-titulo p { font-size: 1.25rem; }
+}

@@ -1,0 +1,18 @@
+/* =====================================================================
+   componentes/toast.css — aviso rápido ("Adicionado ao carrinho ♥")
+   ===================================================================== */
+.toast {
+  position: fixed; left: 50%; bottom: 90px; z-index: 70;
+  padding: 12px 22px; border-radius: 999px;
+  background: var(--marrom); color: var(--creme);
+  font-weight: 700; white-space: nowrap;
+  box-shadow: var(--sombra-forte);
+  opacity: 0; pointer-events: none;
+  transform: translate(-50%, 30px);
+  transition: opacity .3s, transform .3s;
+}
+.toast.visivel { opacity: 1; transform: translate(-50%, 0); }
+
+@media (min-width: 900px) {
+  .toast { bottom: 40px; }
+}

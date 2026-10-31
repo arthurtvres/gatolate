@@ -1,0 +1,219 @@
+import { useMemo, useRef, useState } from "react";
+import CONFIG from "../../config/loja";
+import { useCarrinho } from "../../hooks/useCarrinho";
+import { useProdutos } from "../../hooks/useProdutos";
+import { supabaseConfigurado } from "../../lib/supabase";
+import { registrarPedidoDaLoja } from "../../services/pedidosApi";
+import { CHAVES, gravarLocal, lerLocal } from "../../utils/armazenamento";
+import { calcularResumo, textoNota, textoTotal } from "../../utils/carrinho";
+import { gerarCodigoPedido, hojeISO, mascararTelefone } from "../../utils/formatacao";
+import { nomePagamento } from "../../utils/pagamentos";
+import { validarCampo, validarFormulario } from "../../utils/validacao";
+import { abrirWhatsApp, linkWhatsApp, montarMensagem } from "../../utils/whatsapp";
+import CampoTexto from "../ui/CampoTexto";
+import Icone from "../ui/Icone";
+
+/** Campos lembrados para o próximo pedido. */
+const CAMPOS_SALVOS = ["nome", "telefone", "rua", "numero", "bairro", "complemento"];
+const CAMPOS_ENDERECO = ["rua", "numero", "bairro"];
+
+const DADOS_VAZIOS = {
+  nome: "",
+  telefone: "",
+  tipo: "entrega",
+  rua: "",
+  numero: "",
+  bairro: "",
+  complemento: "",
+  data: "",
+  periodo: "",
+  obs: "",
+  pagamento: "0" // posição em CONFIG.pagamentos
+};
+
+function carregarDados() {
+  const salvo = lerLocal(CHAVES.cliente, {}) || {};
+  const cliente = {};
+  CAMPOS_SALVOS.forEach((campo) => {
+    if (typeof salvo[campo] === "string") cliente[campo] = salvo[campo];
+  });
+  return { ...DADOS_VAZIOS, ...cliente };
+}
+
+/** Tela 2 da gaveta: dados do cliente e envio para o WhatsApp. */
+export default function FormularioPedido({ onVazio, onEnviado }) {
+  const { itens } = useCarrinho();
+  const { porId } = useProdutos();
+  const [dados, setDados] = useState(carregarDados);
+  const [erros, setErros] = useState({});
+  const formRef = useRef(null);
+  const resumo = useMemo(() => calcularResumo(itens, porId, dados.tipo), [itens, porId, dados.tipo]);
+  const hoje = useMemo(() => hojeISO(), []);
+
+  function atualizar(nome, valor) {
+    const proximos = { ...dados, [nome]: valor };
+    setDados(proximos);
+
+    setErros((atuais) => {
+      const novos = { ...atuais };
+      // O erro some assim que a pessoa corrige o campo
+      if (novos[nome]) novos[nome] = validarCampo(nome, proximos);
+      // Na retirada, endereço não é obrigatório: limpa os erros antigos
+      if (nome === "tipo" && valor === "retirada") CAMPOS_ENDERECO.forEach((c) => delete novos[c]);
+      return novos;
+    });
+  }
+
+  const aoMudar = (e) => {
+    const { name, value } = e.target;
+    atualizar(name, name === "telefone" ? mascararTelefone(value) : value);
+  };
+
+  // Ao sair de um campo já preenchido, confere se está certo
+  const aoSair = (e) => {
+    const { name, value } = e.target;
+    if (value) setErros((atuais) => ({ ...atuais, [name]: validarCampo(name, dados) }));
+  };
+
+  function aoEnviar(e) {
+    e.preventDefault();
+    if (resumo.quantidade === 0) {
+      onVazio();
+      return;
+    }
+
+    const encontrados = validarFormulario(dados);
+    setErros(encontrados);
+    const primeiroErro = Object.keys(encontrados)[0];
+    if (primeiroErro) {
+      formRef.current.elements[primeiroErro].focus();
+      return;
+    }
+
+    const pagamento = CONFIG.pagamentos[Number(dados.pagamento)] || CONFIG.pagamentos[0];
+    const pedido = Object.fromEntries(
+      Object.entries(dados).map(([campo, valor]) => [campo, typeof valor === "string" ? valor.trim() : valor])
+    );
+    pedido.pagamento = nomePagamento(pagamento, dados.tipo);
+
+    gravarLocal(CHAVES.cliente, Object.fromEntries(CAMPOS_SALVOS.map((c) => [c, pedido[c]])));
+
+    // O código aparece na mensagem e no painel admin, para conferir um com o outro
+    // (no modo demonstração não há registro, então também não há código)
+    const codigo = supabaseConfigurado ? gerarCodigoPedido() : null;
+    if (codigo) registrarPedidoDaLoja(codigo, resumo, pedido);
+
+    const url = linkWhatsApp(montarMensagem(resumo, pedido, codigo));
+    onEnviado(url);
+    abrirWhatsApp(url);
+  }
+
+  const entrega = dados.tipo === "entrega";
+  const propsCampo = (nome) => ({ nome, value: dados[nome], onChange: aoMudar, onBlur: aoSair, erro: erros[nome] });
+
+  return (
+    <form className="formulario" ref={formRef} onSubmit={aoEnviar} noValidate>
+      <CampoTexto {...propsCampo("nome")} rotulo="Nome" obrigatorio type="text" autoComplete="name" />
+      <CampoTexto
+        {...propsCampo("telefone")}
+        rotulo="Telefone / WhatsApp"
+        obrigatorio
+        type="tel"
+        inputMode="numeric"
+        autoComplete="tel-national"
+        placeholder="(00) 00000-0000"
+        maxLength={15}
+      />
+
+      <fieldset className="campo">
+        <legend>
+          Como prefere receber? <abbr title="obrigatório">*</abbr>
+        </legend>
+        <div className="opcoes">
+          {[
+            ["entrega", "🚚 Entrega"],
+            ["retirada", "🏠 Retirada"]
+          ].map(([valor, rotulo]) => (
+            <label className="opcao" key={valor}>
+              <input type="radio" name="tipo" value={valor} checked={dados.tipo === valor} onChange={aoMudar} />
+              <span>{rotulo}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {entrega && (
+        <fieldset className="campo endereco">
+          <legend>Endereço de entrega</legend>
+          <CampoTexto {...propsCampo("rua")} rotulo="Rua" obrigatorio type="text" autoComplete="address-line1" />
+          <div className="campo-duplo">
+            <CampoTexto {...propsCampo("numero")} rotulo="Número" obrigatorio type="text" inputMode="numeric" />
+            <CampoTexto {...propsCampo("bairro")} rotulo="Bairro" obrigatorio type="text" />
+          </div>
+          <CampoTexto
+            {...propsCampo("complemento")}
+            rotulo="Complemento"
+            type="text"
+            autoComplete="address-line2"
+            placeholder="Apto, bloco, ponto de referência..."
+          />
+        </fieldset>
+      )}
+
+      <div className="campo-duplo">
+        <CampoTexto {...propsCampo("data")} rotulo="Para quando?" type="date" min={hoje} />
+        <div className="campo">
+          <label htmlFor="f-periodo">
+            Horário <span className="opcional">(opcional)</span>
+          </label>
+          <select id="f-periodo" name="periodo" value={dados.periodo} onChange={aoMudar}>
+            <option value="">Qualquer horário</option>
+            <option value="de manhã">De manhã</option>
+            <option value="à tarde">À tarde</option>
+            <option value="à noite">À noite</option>
+          </select>
+        </div>
+      </div>
+
+      <CampoTexto
+        {...propsCampo("obs")}
+        rotulo="Observações"
+        multilinha
+        rows={2}
+        placeholder="Ex.: sem castanha, é presente..."
+      />
+
+      <fieldset className="campo">
+        <legend>Forma de pagamento</legend>
+        <div className="opcoes opcoes--tres">
+          {CONFIG.pagamentos.map((p, i) => (
+            <label className="opcao" key={p.nome}>
+              <input
+                type="radio"
+                name="pagamento"
+                value={String(i)}
+                checked={dados.pagamento === String(i)}
+                onChange={aoMudar}
+              />
+              <span>{nomePagamento(p, dados.tipo)}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div className="resumo-form">
+        <div className="linha-total">
+          <span>Total</span>
+          <strong>{textoTotal(resumo)}</strong>
+        </div>
+        <p className="nota">{textoNota(resumo, dados.tipo)}</p>
+      </div>
+
+      <button className="btn btn--cheio btn--whatsapp" type="submit">
+        <Icone nome="whatsapp" />
+        Enviar pedido pelo WhatsApp
+      </button>
+      <p className="nota nota--centro">O pagamento é combinado direto com a gente pelo WhatsApp 💬</p>
+    </form>
+  );
+}

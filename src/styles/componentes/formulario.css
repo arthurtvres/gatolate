@@ -1,0 +1,54 @@
+/* =====================================================================
+   componentes/formulario.css — formulário de finalização do pedido
+   ===================================================================== */
+.formulario { display: grid; gap: 16px; padding: 18px 20px 26px; }
+
+.campo { display: grid; gap: 5px; min-width: 0; }
+fieldset.campo { margin: 0; padding: 0; border: 0; }
+.campo label, .campo legend { padding: 0; font-weight: 700; font-size: .92rem; }
+.campo abbr { color: var(--rosa-botao); text-decoration: none; }
+.opcional { font-weight: 400; font-size: .82rem; color: var(--texto-suave); }
+
+.campo input:not([type="radio"]), .campo select, .campo textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid #E2C6BC; border-radius: 12px;
+  background: #fff;
+  transition: border-color .2s, box-shadow .2s;
+}
+.campo textarea { resize: vertical; }
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+  outline: none; border-color: var(--rosa-escuro); box-shadow: 0 0 0 3px rgba(201, 97, 106, .22);
+}
+
+/* Erros */
+.campo [aria-invalid="true"] { border-color: #B3261E !important; background: #FFF6F5 !important; }
+.erro { color: var(--erro); font-size: .82rem; font-weight: 600; }
+.erro:empty { display: none; }
+
+.campo-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Bloco de endereço (só aparece na entrega) */
+.campo.endereco { display: grid; gap: 12px; padding: 14px; border-radius: 14px; background: var(--rosa-claro); }
+.endereco legend { float: left; width: 100%; margin-bottom: 2px; }
+
+/* Opções em "botões" (entrega/retirada e pagamento) */
+.opcoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+.opcao { position: relative; }
+.opcao input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.opcao span {
+  display: grid; place-items: center; min-height: 44px; height: 100%; padding: 8px 10px;
+  border: 1.5px solid #E2C6BC; border-radius: 12px; background: #fff;
+  text-align: center; font-weight: 600; font-size: .9rem; line-height: 1.2;
+  transition: background .2s, border-color .2s;
+}
+.opcao input:checked + span {
+  border-color: var(--rosa-botao); background: var(--rosa);
+  box-shadow: inset 0 0 0 1px var(--rosa-botao);
+}
+.opcao input:focus-visible + span { outline: 3px solid var(--rosa-escuro); outline-offset: 2px; }
+
+.resumo-form { padding-top: 12px; border-top: 2px dashed var(--rosa-borda); }
+
+@media (min-width: 560px) {
+  .opcoes--tres { grid-template-columns: repeat(3, 1fr); }
+}

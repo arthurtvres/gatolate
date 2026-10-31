@@ -1,0 +1,2 @@
+# Rotas do React (ex.: /admin) abrem o index.html. Arquivos que existem são servidos normalmente.
+/*  /index.html  200

@@ -1,0 +1,65 @@
+/* =====================================================================
+   componentes/botoes.css — botões, botões de ícone e contador
+   ===================================================================== */
+
+/* Botão principal (rosa arredondado) */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 22px;
+  border: 0; border-radius: 999px;
+  background: var(--rosa-botao); color: #fff;
+  font-weight: 700; font-size: .95rem; text-decoration: none;
+  box-shadow: 0 3px 0 rgba(74, 35, 24, .15);
+  transition: background .2s, transform .15s, box-shadow .2s;
+}
+.btn:hover { background: var(--rosa-botao-hover); }
+.btn:active { transform: translateY(1px); box-shadow: none; }
+.btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+.btn--cheio { width: 100%; }
+
+/* Variação verde do WhatsApp */
+.btn--whatsapp { background: var(--verde-whats); }
+.btn--whatsapp:hover { background: var(--verde-whats-hover); }
+.btn--grande { font-size: 1.15rem; padding: 16px 34px; min-height: 58px; }
+.btn--grande svg { width: 26px; height: 26px; }
+
+/* Botão com cara de link ("Continuar comprando") */
+.btn-link {
+  width: 100%; margin-top: 4px; padding: 8px;
+  background: none; border: 0;
+  color: var(--texto-suave); font-weight: 600; text-decoration: underline;
+}
+.btn-link:hover { color: var(--texto); }
+
+/* Botão redondo só com ícone (busca, carrinho, menu, fechar) */
+.icone-btn {
+  position: relative;
+  display: inline-grid; place-items: center;
+  width: 44px; height: 44px;
+  background: none; border: 0; border-radius: 50%;
+  color: var(--creme);
+  transition: background .2s;
+}
+.icone-btn:hover { background: rgba(251, 241, 230, .12); }
+.icone-btn svg { width: 26px; height: 26px; }
+.icone-btn:focus-visible { outline-color: var(--rosa); }
+.icone-btn--claro { color: var(--texto); }
+.icone-btn--claro:hover { background: var(--rosa-claro); }
+.icone-btn--claro:focus-visible { outline-color: var(--rosa-escuro); }
+
+/* Bolinha com a quantidade de itens do carrinho */
+.contador {
+  position: absolute; top: 2px; right: 0;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  display: grid; place-items: center;
+  border-radius: 999px; border: 2px solid var(--marrom);
+  background: var(--rosa-escuro); color: #fff;
+  font-size: .72rem; font-weight: 800; line-height: 1;
+}
+.contador.pulo { animation: pulo .5s ease; }
+@keyframes pulo {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.45); }
+  65% { transform: scale(.9); }
+  100% { transform: scale(1); }
+}

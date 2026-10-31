@@ -1,0 +1,50 @@
+/* =====================================================================
+   base/variaveis.css — cores, fontes e medidas do site todo
+   ---------------------------------------------------------------------
+   Para mudar uma cor no site inteiro, mude aqui.
+
+   Pontos de quebra (mobile first; CSS não aceita variável em @media,
+   então eles aparecem escritos direto nos arquivos):
+     560px  → celular grande / tablet pequeno
+     768px  → tablet
+     900px  → computador (menu horizontal, sem botão flutuante)
+     1100px → tela larga (produtos em 4 colunas)
+   ===================================================================== */
+:root {
+  /* Cores */
+  --marrom: #4A2318;        /* cabeçalho e rodapé */
+  --marrom-escuro: #3A1A11;
+  --creme: #FBF1E6;         /* fundo */
+  --branco-quente: #FFFAF5; /* fundo dos cards */
+  --rosa: #F6CFCF;          /* manchas de pincel e destaques */
+  --rosa-claro: #FCE6E6;
+  --rosa-borda: #EBC2C2;
+  --rosa-escuro: #C9616A;   /* ícones e corações */
+  --rosa-botao: #B5505A;    /* botões (um tom mais escuro para o texto branco ter bom contraste) */
+  --rosa-botao-hover: #9E414B;
+  --texto: #3B1E14;
+  --texto-suave: #7A5A4E;
+  --verde-whats: #1F8A4C;
+  --verde-whats-hover: #176E3C;
+  --erro: #A11D17;
+
+  /* Fontes */
+  --fonte-manuscrita: "Gochi Hand", "Patrick Hand", "Comic Sans MS", cursive;
+  --fonte-texto: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Medidas */
+  --raio: 14px;
+  --sombra: 0 4px 14px rgba(74, 35, 24, .08);
+  --sombra-forte: 0 14px 30px rgba(74, 35, 24, .16);
+  --altura-cabecalho: 72px;
+
+  /* Desenhos em SVG usados como fundo */
+  /* Onda das bordas do cabeçalho e do rodapé */
+  --onda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 16' preserveAspectRatio='none'%3E%3Cpath d='M0 0H120V8C105 16 75 16 60 8C45 0 15 0 0 8Z' fill='%234A2318'/%3E%3C/svg%3E");
+  /* Linha rosa ondulada do divisor */
+  --linha-ondulada: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10'%3E%3Cpath d='M0 5Q10 1 20 5T40 5' fill='none' stroke='%23EBA9AE' stroke-width='1.6'/%3E%3C/svg%3E");
+}
+
+@media (min-width: 900px) {
+  :root { --altura-cabecalho: 92px; }
+}

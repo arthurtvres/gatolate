@@ -1,0 +1,68 @@
+/* =====================================================================
+   layout/rodape.css — rodapé marrom: benefícios, formas de pagamento
+   (a última coisa do site), cantos xadrez e corações
+   ===================================================================== */
+.rodape {
+  position: relative;
+  padding: 34px 0 96px; /* espaço extra embaixo por causa do botão flutuante */
+  background: var(--marrom); color: var(--creme);
+  overflow-x: clip;
+}
+.rodape .container { position: relative; z-index: 1; }
+
+/* ---------- Benefícios ---------- */
+.faixa-beneficios { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 10px; }
+.faixa-beneficios li { display: flex; align-items: center; gap: 10px; font-size: .9rem; line-height: 1.25; }
+.faixa-beneficios svg { width: 34px; height: 34px; flex-shrink: 0; color: var(--rosa-escuro); --rosa-claro: var(--marrom); }
+
+/* ---------- Formas de pagamento ---------- */
+.pagamentos {
+  display: grid; justify-items: center; gap: 12px;
+  margin-top: 30px; padding-top: 26px;
+  border-top: 1.5px dashed rgba(251, 241, 230, .25);
+  text-align: center;
+}
+.pagamentos h2 { font-size: 1.8rem; line-height: 1.1; color: #fff; }
+.pagamentos__lista { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.pagamentos__lista li {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 18px 8px 12px; border-radius: 999px;
+  background: var(--creme); color: var(--texto);
+  font-weight: 800; font-size: .95rem;
+}
+.pagamentos__lista svg { width: 22px; height: 22px; color: var(--rosa-botao); --rosa-claro: var(--creme); }
+.pagamentos__nota { max-width: 420px; font-size: .88rem; opacity: .85; }
+
+.rodape__copy { margin-top: 26px; text-align: center; font-size: .85rem; opacity: .8; }
+
+/* ---------- Cantos com xadrez rosa (toalhinha de piquenique) ---------- */
+.rodape__xadrez {
+  position: absolute; bottom: 0; width: 90px; height: 90px;
+  background-color: #fff;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(232, 146, 154, .55) 0 10px, transparent 10px 20px),
+    repeating-linear-gradient(90deg, rgba(232, 146, 154, .55) 0 10px, transparent 10px 20px);
+  opacity: .9;
+}
+.rodape__xadrez--esq { left: 0; border-top-right-radius: 70% 85%; }
+.rodape__xadrez--dir { right: 0; border-top-left-radius: 70% 85%; }
+
+.rodape__coracao { position: absolute; display: none; width: 34px; height: 34px; color: var(--creme); }
+
+@media (min-width: 768px) {
+  .faixa-beneficios { grid-template-columns: repeat(4, 1fr); }
+  .rodape__xadrez { width: 120px; height: 110px; }
+}
+
+@media (min-width: 900px) {
+  .rodape { padding-bottom: 40px; }
+}
+
+@media (min-width: 1100px) {
+  .faixa-beneficios { padding-inline: 150px; }
+  .faixa-beneficios li + li { padding-left: 22px; border-left: 1.5px solid rgba(251, 241, 230, .35); }
+  .rodape__xadrez { width: 170px; height: 150px; }
+  .rodape__coracao { display: block; }
+  .rodape__coracao--esq { left: 190px; top: 28px; transform: rotate(-14deg); }
+  .rodape__coracao--dir { right: 190px; top: 28px; transform: rotate(12deg); }
+}

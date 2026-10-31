@@ -1,0 +1,79 @@
+/* =====================================================================
+   componentes/modal-produto.css — detalhes do produto (<dialog>)
+   Celular: sobe de baixo, como uma folha. Tablet/computador: centralizado,
+   com a foto à esquerda e as informações à direita.
+   ===================================================================== */
+.modal-produto {
+  width: 100%; max-width: 100%;
+  max-height: 92dvh;
+  margin: auto 0 0;             /* gruda embaixo da tela */
+  padding: 0; border: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--creme); color: var(--texto);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, .25);
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+}
+.modal-produto[open] { animation: modal-sobe .3s ease; }
+.modal-produto::backdrop {
+  background: rgba(43, 21, 16, .55);
+  animation: aparece .25s ease;
+}
+@keyframes modal-sobe { from { transform: translateY(100%); } to { transform: none; } }
+
+.modal-produto__conteudo { position: relative; display: grid; }
+
+.modal-produto__fechar {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  background: var(--creme);
+  box-shadow: var(--sombra);
+}
+
+.modal-produto__foto { aspect-ratio: 4 / 3; background: var(--rosa-claro); overflow: hidden; }
+.modal-produto__foto img { width: 100%; height: 100%; object-fit: cover; }
+.modal-produto__foto .foto-reserva span { font-size: 2.2rem; }
+
+.modal-produto__info { display: grid; gap: 10px; align-content: start; padding: 22px 22px 26px; }
+.modal-produto__nome {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 2.2rem; line-height: 1.1;
+}
+.modal-produto__nome svg { width: 24px; height: 24px; flex-shrink: 0; color: var(--rosa-escuro); }
+.modal-produto__preco { font-weight: 800; font-size: 1.35rem; }
+.modal-produto__preco small { margin-left: 6px; font-weight: 400; font-size: .95rem; color: var(--texto-suave); }
+.modal-produto__descricao { font-size: 1.05rem; }
+.modal-produto__detalhes { color: var(--texto-suave); }
+
+.modal-produto__lista { display: grid; gap: 6px; margin: 4px 0; }
+.modal-produto__lista li { display: flex; align-items: center; gap: 8px; font-size: .95rem; }
+.modal-produto__lista svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--rosa-escuro); }
+
+/* Quantidade + botão de adicionar */
+.modal-produto__comprar {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 10px; padding-top: 16px;
+  border-top: 2px dashed var(--rosa-borda);
+}
+.modal-produto__comprar .quantidade button { width: 42px; height: 42px; }
+.modal-produto__comprar .quantidade button:disabled { opacity: .35; cursor: not-allowed; }
+.modal-produto__comprar .quantidade output { min-width: 34px; font-size: 1.1rem; }
+.modal-produto__adicionar { flex: 1; min-height: 48px; }
+.modal-produto__total { margin-left: auto; padding-left: 10px; border-left: 1px solid rgba(255, 255, 255, .4); }
+.modal-produto .nota { margin: 0; }
+
+@media (min-width: 768px) {
+  .modal-produto {
+    width: min(860px, calc(100% - 48px));
+    max-height: min(620px, calc(100dvh - 48px));
+    margin: auto;
+    border-radius: 24px;
+    box-shadow: var(--sombra-forte);
+  }
+  .modal-produto[open] { animation: modal-aparece .25s ease; }
+  @keyframes modal-aparece { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+
+  .modal-produto__conteudo { grid-template-columns: 1fr 1fr; }
+  .modal-produto__foto { aspect-ratio: auto; min-height: 100%; }
+  .modal-produto__info { padding: 40px 34px 34px; }
+  .modal-produto__nome { font-size: 2.6rem; padding-right: 40px; }
+}
