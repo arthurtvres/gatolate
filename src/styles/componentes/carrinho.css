@@ -111,3 +111,21 @@
 @media (min-width: 900px) {
   .carrinho-flutuante { display: none !important; }
 }
+
+/* ---------- Limpar carrinho (topo da lista) ---------- */
+.limpar-carrinho { display: flex; justify-content: flex-end; padding: 10px 20px 0; }
+.limpar-carrinho__botao,
+.limpar-carrinho__sim,
+.limpar-carrinho__nao {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: .85rem; font-weight: 700;
+  transition: background .2s;
+}
+.limpar-carrinho__botao, .limpar-carrinho__nao { border: 1.5px solid var(--rosa-borda); background: #fff; color: var(--marrom); }
+.limpar-carrinho__botao:hover, .limpar-carrinho__nao:hover { background: var(--rosa-claro); }
+.limpar-carrinho__botao .lucide { width: 15px; height: 15px; }
+.limpar-carrinho__confirmar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; font-size: .88rem; font-weight: 600; }
+.limpar-carrinho__sim { border: 1.5px solid var(--rosa-botao); background: var(--rosa-botao); color: #fff; }
+.limpar-carrinho__sim:hover { background: var(--rosa-botao-hover); }
+.limpar-carrinho :is(button):focus-visible { outline: 3px solid var(--rosa-escuro); outline-offset: 2px; }

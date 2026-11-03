@@ -46,6 +46,13 @@ export default function GavetaCarrinho({ aberta, tela, linkPedido, onIrPara, onF
 
   const focarTitulo = () => tituloRef.current.focus();
 
+  // Botão "Limpar carrinho" da lista: esvazia, mas mantém a gaveta aberta
+  function esvaziarCarrinho() {
+    limpar();
+    focarTitulo();
+    mostrarToast("Carrinho limpo");
+  }
+
   return (
     <>
       <div className="sombra" hidden={!aberta} onClick={onFechar} />
@@ -82,6 +89,7 @@ export default function GavetaCarrinho({ aberta, tela, linkPedido, onIrPara, onF
             onFinalizar={() => onIrPara("checkout")}
             onFechar={onFechar}
             onItemRemovido={focarTitulo}
+            onLimpar={esvaziarCarrinho}
           />
         </div>
 

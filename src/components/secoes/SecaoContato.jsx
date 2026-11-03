@@ -27,10 +27,6 @@ export default function SecaoContato() {
             </a>
           </li>
         )}
-        <li>
-          <Icone nome="local" />
-          <span>{CONFIG.regiaoEntrega}</span>
-        </li>
       </ul>
     </section>
   );

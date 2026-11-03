@@ -34,7 +34,7 @@ export default function Rodape() {
               </li>
             ))}
           </ul>
-          <p className="pagamentos__nota">O pagamento pode ser alterado pelo WhatsApp, depois que você envia o pedido.</p>
+          {/* <p className="pagamentos__nota">O pagamento pode ser alterado pelo WhatsApp, depois que você envia o pedido.</p> */}
         </section>
 
         <p className="rodape__copy">
