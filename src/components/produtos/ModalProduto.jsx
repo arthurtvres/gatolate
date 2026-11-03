@@ -1,3 +1,4 @@
+import { MessageCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useCarrinho } from "../../hooks/useCarrinho";
 import { useToast } from "../../hooks/useToast";
@@ -124,7 +125,10 @@ export default function ModalProduto({ produto, onFechar }) {
             </div>
 
             {!temPreco(produto) && (
-              <p className="nota">O valor é combinado com a gente pelo WhatsApp depois do pedido 💬</p>
+              <p className="nota nota--icone">
+                <MessageCircle aria-hidden="true" />
+                O valor é combinado com a gente pelo WhatsApp depois do pedido
+              </p>
             )}
           </div>
         </div>

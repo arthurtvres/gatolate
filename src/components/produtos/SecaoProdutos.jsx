@@ -1,3 +1,4 @@
+import { PawPrint } from "lucide-react";
 import { useMemo, useState } from "react";
 import CONFIG from "../../config/loja";
 import { useProdutos } from "../../hooks/useProdutos";
@@ -21,9 +22,9 @@ export default function SecaoProdutos({ busca }) {
   }, [busca, todos]);
 
   let aviso = null;
-  if (carregando) aviso = "Tirando os brownies do forno... 🐾";
+  if (carregando) aviso = <>Tirando os brownies do forno... <PawPrint aria-hidden="true" /></>;
   else if (erro) aviso = "Não conseguimos carregar os brownies agora.";
-  else if (produtos.length === 0) aviso = busca.trim() ? "Nenhum brownie com esse nome... 🐾 Tente outra palavra!" : "Nenhum brownie disponível no momento.";
+  else if (produtos.length === 0) aviso = busca.trim() ? <>Nenhum brownie com esse nome... <PawPrint aria-hidden="true" /> Tente outra palavra!</> : "Nenhum brownie disponível no momento.";
 
   return (
     <section className="produtos container" id="produtos" aria-labelledby="titulo-produtos" aria-busy={carregando}>

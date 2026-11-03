@@ -191,7 +191,7 @@ export default function FormProduto({ produto, idsExistentes, onFechar, onSalvo 
               </label>
               <label className="admin-campo">
                 <span>Unidade</span>
-                <input value={form.unidade} onChange={mudar("unidade")} maxLength={40} placeholder="unidade, caixa com 6..." />
+                <input value={form.unidade} onChange={mudar("unidade")} maxLength={40} placeholder="125g, unidade, caixa com 6..." />
               </label>
             </div>
             <label className="admin-check">

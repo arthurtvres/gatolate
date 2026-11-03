@@ -75,7 +75,15 @@ export default function GraficoColunas({ titulo, descricao, dados, formatarValor
       </figcaption>
 
       <div className="admin-grafico__area" ref={caixa}>
-        <svg width={largura} height={ALTURA} role="group" aria-label={titulo}>
+        {/* width 100% + viewBox: nunca passa da largura do cartão, mesmo antes da medição */}
+        <svg
+          width="100%"
+          height={ALTURA}
+          viewBox={`0 0 ${largura} ${ALTURA}`}
+          preserveAspectRatio="none"
+          role="group"
+          aria-label={titulo}
+        >
           {/* Grade e eixo Y */}
           {marcas.map((marca) => (
             <g key={marca}>

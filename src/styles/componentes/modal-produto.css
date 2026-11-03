@@ -21,7 +21,7 @@
 }
 @keyframes modal-sobe { from { transform: translateY(100%); } to { transform: none; } }
 
-.modal-produto__conteudo { position: relative; display: grid; }
+.modal-produto__conteudo { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
 
 .modal-produto__fechar {
   position: absolute; top: 12px; right: 12px; z-index: 2;
@@ -50,14 +50,14 @@
 
 /* Quantidade + botão de adicionar */
 .modal-produto__comprar {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px; /* quebra em telas bem estreitas */
   margin-top: 10px; padding-top: 16px;
   border-top: 2px dashed var(--rosa-borda);
 }
 .modal-produto__comprar .quantidade button { width: 42px; height: 42px; }
 .modal-produto__comprar .quantidade button:disabled { opacity: .35; cursor: not-allowed; }
 .modal-produto__comprar .quantidade output { min-width: 34px; font-size: 1.1rem; }
-.modal-produto__adicionar { flex: 1; min-height: 48px; }
+.modal-produto__adicionar { flex: 1 1 170px; min-height: 48px; }
 .modal-produto__total { margin-left: auto; padding-left: 10px; border-left: 1px solid rgba(255, 255, 255, .4); }
 .modal-produto .nota { margin: 0; }
 
@@ -72,7 +72,7 @@
   .modal-produto[open] { animation: modal-aparece .25s ease; }
   @keyframes modal-aparece { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
 
-  .modal-produto__conteudo { grid-template-columns: 1fr 1fr; }
+  .modal-produto__conteudo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .modal-produto__foto { aspect-ratio: auto; min-height: 100%; }
   .modal-produto__info { padding: 40px 34px 34px; }
   .modal-produto__nome { font-size: 2.6rem; padding-right: 40px; }

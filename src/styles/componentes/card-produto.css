@@ -3,6 +3,7 @@
    ===================================================================== */
 .card {
   position: relative;
+  container: card / inline-size; /* o card mede a si mesmo (ver @container no fim) */
   display: flex; flex-direction: column;
   cursor: pointer;
   background: var(--branco-quente);
@@ -60,6 +61,31 @@
 .foto-reserva--mini svg { width: 70%; }
 .foto-reserva--mini span { display: none; }
 
+/* ---------- Celular: card em linha (foto à esquerda) ----------
+   Mostra 4–5 produtos por tela em vez de ~2, como nos apps de delivery. */
+@media (max-width: 559px) {
+  .card { display: grid; grid-template-columns: 112px minmax(0, 1fr); }
+  .card:hover { transform: none; } /* toque não tem "hover" de verdade */
+  .card__foto { aspect-ratio: auto; height: 100%; min-height: 128px; }
+  .card .foto-reserva { padding: 8px; }
+  .card .foto-reserva svg { width: 74%; }
+  .card .foto-reserva span { display: none; } /* o nome já aparece ao lado */
+
+  .card__info { gap: 2px; padding: 12px 14px 14px; }
+  .card__info > p:last-of-type { margin-bottom: 10px; }
+  .card__nome { font-size: 1.3rem; }
+  .card__nome svg { display: none; }
+  .card__preco, .card__descricao { padding-left: 0; }
+  .card__descricao { font-size: .82rem; }
+  .card .btn { align-self: stretch; max-width: none; min-height: 40px; padding-block: 8px; font-size: .85rem; }
+  .card .btn__extra { display: none; } /* "Adicionar ao carrinho" → "Adicionar" */
+}
+
 @media (min-width: 1100px) {
   .card__info { padding: 12px 16px 18px; }
+}
+
+/* Card estreito (qualquer tela): "Adicionar ao carrinho" → "Adicionar" */
+@container card (max-width: 260px) {
+  .card .btn__extra { display: none; }
 }

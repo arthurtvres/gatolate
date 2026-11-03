@@ -29,9 +29,13 @@
   .grade-produtos { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* A partir de 1000px: 4 colunas (o rótulo do botão encurta sozinho se faltar espaço) */
+@media (min-width: 1000px) {
+  .grade-produtos { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+}
+
 @media (min-width: 1100px) {
   .produtos { padding-top: 56px; }
-  .grade-produtos { grid-template-columns: repeat(4, 1fr); gap: 24px; }
 }
 
 /* Telas largas: sobra margem lateral, então o card vai para o canto superior

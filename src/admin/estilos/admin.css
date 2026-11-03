@@ -129,6 +129,11 @@
 .admin-stat--destaque { grid-column: 1 / -1; }
 .admin-stat--destaque .admin-stat__valor { font-size: 3rem; }
 
+/* Tablet: faturamento em cima, os 3 números menores lado a lado */
+@media (min-width: 600px) {
+  .admin-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 @media (min-width: 900px) {
   .admin-stats { grid-template-columns: 1.6fr repeat(3, 1fr); }
   .admin-stat--destaque { grid-column: auto; }

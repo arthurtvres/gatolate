@@ -36,7 +36,11 @@ export default function CardProduto({ produto, onAbrir }) {
         </p>
         {produto.descricao && <p className="card__descricao">{produto.descricao}</p>}
         <button className="btn" type="button" onClick={aoAdicionar}>
-          <Icone nome="carrinho" /> Adicionar ao carrinho
+          <Icone nome="carrinho" />
+          {/* um só elemento de texto: o espaço entre as palavras fica normal */}
+          <span>
+            Adicionar<span className="btn__extra"> ao carrinho</span>
+          </span>
           <span className="sr-only">: {produto.nome}</span>
         </button>
       </div>

@@ -1,9 +1,11 @@
 /* =====================================================================
    componentes/formulario.css — formulário de finalização do pedido
    ===================================================================== */
-.formulario { display: grid; gap: 16px; padding: 18px 20px 26px; }
+.formulario { display: grid; gap: 16px; padding: 18px 20px 0; }
 
 .campo { display: grid; gap: 5px; min-width: 0; }
+/* Ao focar um campo com erro, ele não fica escondido atrás do rodapé fixo */
+.campo :is(input, select, textarea) { scroll-margin: 90px 0 190px; }
 fieldset.campo { margin: 0; padding: 0; border: 0; }
 .campo label, .campo legend { padding: 0; font-weight: 700; font-size: .92rem; }
 .campo abbr { color: var(--rosa-botao); text-decoration: none; }
@@ -36,7 +38,8 @@ fieldset.campo { margin: 0; padding: 0; border: 0; }
 .opcao { position: relative; }
 .opcao input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .opcao span {
-  display: grid; place-items: center; min-height: 44px; height: 100%; padding: 8px 10px;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 44px; height: 100%; padding: 8px 10px;
   border: 1.5px solid #E2C6BC; border-radius: 12px; background: #fff;
   text-align: center; font-weight: 600; font-size: .9rem; line-height: 1.2;
   transition: background .2s, border-color .2s;
@@ -47,8 +50,77 @@ fieldset.campo { margin: 0; padding: 0; border: 0; }
 }
 .opcao input:focus-visible + span { outline: 3px solid var(--rosa-escuro); outline-offset: 2px; }
 
-.resumo-form { padding-top: 12px; border-top: 2px dashed var(--rosa-borda); }
+/* Rodapé fixo: total + botão sempre à vista enquanto a pessoa rola */
+.rodape-pedido {
+  position: sticky; bottom: 0; z-index: 2;
+  margin: 0 -20px; padding: 12px 20px 16px;
+  background: var(--creme);
+  border-top: 2px dashed var(--rosa-borda);
+  box-shadow: 0 -8px 16px rgba(74, 35, 24, .06);
+}
+.rodape-pedido .nota { margin: 2px 0 10px; }
+.rodape-pedido .btn { width: 100%; }
+
+/* Número curto, complemento mais largo */
+.campo-duplo--numero { grid-template-columns: 1fr 2fr; }
+
+/* Bairro com busca */
+.campo-bairro { position: relative; }
+.campo-bairro__lista {
+  position: absolute; top: calc(100% - 2px); left: 0; right: 0; z-index: 5;
+  max-height: 230px; overflow-y: auto;
+  margin: 0; padding: 6px; list-style: none;
+  background: #fff; border: 1.5px solid #E2C6BC; border-radius: 12px;
+  box-shadow: var(--sombra-forte);
+}
+.campo-bairro__lista li { padding: 9px 10px; border-radius: 8px; cursor: pointer; font-size: .92rem; }
+.campo-bairro__lista li[aria-selected="true"] { background: var(--rosa-claro); }
+.campo-bairro__outro { display: flex; align-items: center; gap: 6px; margin-top: 4px; border-top: 1px solid #F1DCD3; font-weight: 700; color: var(--rosa-botao); }
+.campo-bairro__voltar {
+  justify-self: start; padding: 2px 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: .85rem; font-weight: 700; color: var(--rosa-botao); text-decoration: underline;
+}
 
 @media (min-width: 560px) {
   .opcoes--tres { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* Nota com ícone na frente */
+.nota--icone { display: flex; align-items: center; gap: 6px; }
+
+/* Dados salvos de um pedido anterior, em resumo */
+.cartao-salvo {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border-radius: 14px;
+  background: var(--branco-quente); border: 1.5px solid var(--rosa-borda);
+}
+.cartao-salvo__conteudo { display: grid; gap: 5px; min-width: 0; }
+.cartao-salvo__titulo { font-size: .82rem; color: var(--texto-suave); }
+.cartao-salvo__linha { display: flex; align-items: flex-start; gap: 8px; font-weight: 600; overflow-wrap: anywhere; }
+.cartao-salvo__linha .lucide { margin-top: .15em; }
+.cartao-salvo__alterar {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  padding: 6px 10px; border: 1.5px solid var(--rosa-borda); border-radius: 999px;
+  background: #fff; cursor: pointer;
+  font: inherit; font-size: .85rem; font-weight: 700; color: var(--marrom);
+  transition: background .2s;
+}
+.cartao-salvo__alterar:hover { background: var(--rosa-claro); }
+.cartao-salvo__alterar:focus-visible { outline: 3px solid var(--rosa-escuro); outline-offset: 2px; }
+.cartao-salvo__alterar .lucide { width: 15px; height: 15px; }
+
+/* Itens do pedido no topo do checkout */
+.resumo-itens { display: grid; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--branco-quente); border: 1.5px solid var(--rosa-borda); }
+.resumo-itens__topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.resumo-itens__topo h3 { margin: 0; font-size: 1rem; font-weight: 800; }
+.resumo-itens__topo h3 span { font-weight: 400; font-size: .88rem; color: var(--texto-suave); }
+.resumo-itens__lista { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.resumo-itens__lista li { display: grid; grid-template-columns: 40px 1fr auto; align-items: center; gap: 10px; }
+.resumo-itens__foto { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: var(--rosa-claro); }
+.resumo-itens__foto img { width: 100%; height: 100%; object-fit: cover; }
+.resumo-itens__nome { min-width: 0; font-size: .92rem; line-height: 1.25; }
+.resumo-itens__nome small { display: block; font-size: .8rem; color: var(--texto-suave); }
+.resumo-itens__valor { font-weight: 700; font-size: .92rem; white-space: nowrap; }
+.resumo-itens__contas { display: grid; gap: 2px; margin: 0; padding-top: 8px; border-top: 1px dashed var(--rosa-borda); font-size: .88rem; color: var(--texto-suave); }
+.resumo-itens__contas div { display: flex; justify-content: space-between; }
+.resumo-itens__contas dd { margin: 0; }

@@ -1,6 +1,12 @@
 /* Regras do formulário de pedido.
    Cada regra recebe (valor, dados) e devolve "" (ok) ou a mensagem de erro. */
 
+import BAIRROS from "../config/bairros";
+
+/** Texto sem acentos e em minúsculas, para buscas ("São" acha "sao"). */
+export const normalizarBusca = (texto) =>
+  texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
 const ehEntrega = (dados) => dados.tipo === "entrega";
 
 const obrigatorioNaEntrega = (mensagem) => (valor, dados) =>
@@ -11,8 +17,15 @@ export const REGRAS = {
   telefone: (v) =>
     /^\d{10,11}$/.test(v.replace(/\D/g, "")) ? "" : "Digite o telefone com DDD, ex.: (11) 98888-7777",
   rua: obrigatorioNaEntrega("Qual é a rua para a entrega?"),
-  numero: obrigatorioNaEntrega("Falta o número"),
-  bairro: obrigatorioNaEntrega("Falta o bairro")
+  bairro: (v, dados) => {
+    if (!ehEntrega(dados)) return "";
+    if (!v.trim()) return "Falta o bairro";
+    if (!dados.bairroOutro && !BAIRROS.includes(v)) {
+      return "Escolha um bairro da lista (ou toque em “Meu bairro não está na lista”)";
+    }
+    return "";
+  },
+  numero: obrigatorioNaEntrega("Falta o número")
 };
 
 /** Erro de um campo ("" se estiver ok ou se o campo não tiver regra). */

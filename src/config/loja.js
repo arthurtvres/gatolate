@@ -1,10 +1,3 @@
-/* =====================================================================
-   CONFIGURAÇÃO DA LOJA — o único arquivo que você precisa editar:
-   WhatsApp, produtos, preços, textos, links e formas de pagamento.
-   Preços usam PONTO nos centavos (8.50) e cada item da lista termina
-   com vírgula.
-   ===================================================================== */
-
 const CONFIG = {
   whatsapp: "559991356768",
   nomeLoja: "Gatolate",
@@ -43,7 +36,7 @@ const CONFIG = {
   pagamentos: [
     { nome: "Pix" },
     { nome: "Dinheiro" },
-    { nome: "Cartão", naEntrega: true }
+    { nome: "Cartão"}
   ],
 
   /* PRODUTOS
@@ -57,7 +50,7 @@ const CONFIG = {
      - nome: nome no cardápio.
      - descricao: frase curta embaixo do nome.
      - preco: valor em reais (ex.: 8.00). Use null para "Sob consulta".
-     - unidade: aparece depois do preço ("unidade", "caixa com 6"...).
+     - unidade: aparece depois do preço ("125g", "unidade", "caixa com 6"...).
      - imagem: foto dentro da pasta public/produtos/. Se a foto não
        existir, o site mostra um fundo bonito com o nome do produto.
      - categoria: só para organização ("brownies", "caixas"...).

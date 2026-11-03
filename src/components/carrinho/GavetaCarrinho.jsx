@@ -86,7 +86,12 @@ export default function GavetaCarrinho({ aberta, tela, linkPedido, onIrPara, onF
         </div>
 
         <div className="gaveta__tela" hidden={tela !== "checkout"}>
-          <FormularioPedido key={versaoFormulario} onVazio={() => onIrPara("itens")} onEnviado={onPedidoEnviado} />
+          <FormularioPedido
+            key={versaoFormulario}
+            onVazio={() => onIrPara("itens")}
+            onEditarItens={() => onIrPara("itens")}
+            onEnviado={onPedidoEnviado}
+          />
         </div>
 
         <div className="gaveta__tela gaveta__tela--enviado" hidden={tela !== "enviado"}>
