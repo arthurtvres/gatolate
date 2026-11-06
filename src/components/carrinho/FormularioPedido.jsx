@@ -9,7 +9,7 @@ import { supabaseConfigurado } from "../../lib/supabase";
 import { registrarPedidoDaLoja } from "../../services/pedidosApi";
 import { CHAVES, gravarLocal, lerLocal } from "../../utils/armazenamento";
 import { calcularResumo, textoNota, textoTotal } from "../../utils/carrinho";
-import { gerarCodigoPedido, mascararTelefone } from "../../utils/formatacao";
+import { mascararTelefone } from "../../utils/formatacao";
 import { iconePagamento, nomePagamento } from "../../utils/pagamentos";
 import { validarCampo, validarFormulario } from "../../utils/validacao";
 import { abrirWhatsApp, formatarEndereco, linkWhatsApp, montarMensagem } from "../../utils/whatsapp";
@@ -118,7 +118,7 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
     if (value) setErros((atuais) => ({ ...atuais, [name]: validarCampo(name, dados) }));
   };
 
-  function aoEnviar(e) {
+  async function aoEnviar(e) {
     e.preventDefault();
     if (resumo.quantidade === 0) {
       onVazio();
@@ -144,10 +144,8 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
 
     gravarLocal(CHAVES.cliente, Object.fromEntries(CAMPOS_SALVOS.map((c) => [c, pedido[c]])));
 
-    // O código aparece na mensagem e no painel admin, para conferir um com o outro
-    // (no modo demonstração não há registro, então também não há código)
-    const codigo = supabaseConfigurado ? gerarCodigoPedido() : null;
-    if (codigo) registrarPedidoDaLoja(codigo, resumo, pedido);
+    // O banco gera o código sequencial e devolve o mesmo valor para o WhatsApp.
+    const codigo = supabaseConfigurado ? await registrarPedidoDaLoja(null, resumo, pedido) : null;
 
     const url = linkWhatsApp(montarMensagem(resumo, pedido, codigo));
     onEnviado(url);

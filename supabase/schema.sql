@@ -91,9 +91,11 @@ create policy "admin exclui produtos" on public.produtos
 -- ---------------------------------------------------------------------
 -- PEDIDOS
 -- ---------------------------------------------------------------------
+create sequence if not exists public.pedidos_codigo_seq;
+
 create table if not exists public.pedidos (
   id               uuid primary key default gen_random_uuid(),
-  codigo           text not null unique check (codigo ~ '^[A-Z0-9]{6}$'), -- aparece na mensagem do WhatsApp
+  codigo           text not null unique check (codigo ~ '^[0-9]+$'), -- aparece na mensagem do WhatsApp
   criado_em        timestamptz not null default now(),
   atualizado_em    timestamptz not null default now(),
   status           text not null default 'pendente'
@@ -110,6 +112,34 @@ create table if not exists public.pedidos (
   subtotal         numeric(10, 2) not null default 0, -- soma dos itens com preço
   tem_sob_consulta boolean not null default false,
   total_final      numeric(10, 2) check (total_final is null or total_final >= 0) -- valor ajustado pela admin
+);
+-- Migra instalações que ainda tinham códigos aleatórios.
+alter table public.pedidos drop constraint if exists pedidos_codigo_check;
+do $$
+declare
+  v_max integer;
+begin
+  select coalesce(max(codigo::integer), 0) into v_max
+    from public.pedidos
+   where codigo ~ '^[0-9]+$';
+
+  update public.pedidos p
+     set codigo = lpad((v_max + antigos.ordem)::text, 4, '0')
+    from (
+      select id, row_number() over (order by criado_em, id) as ordem
+        from public.pedidos
+       where codigo !~ '^[0-9]+$'
+    ) antigos
+   where p.id = antigos.id;
+
+  alter table public.pedidos
+    add constraint pedidos_codigo_check check (codigo ~ '^[0-9]+$');
+end;
+$$;
+select setval(
+  'public.pedidos_codigo_seq',
+  coalesce((select max(codigo::integer) from public.pedidos), 1),
+  (select count(*) > 0 from public.pedidos)
 );
 create index if not exists pedidos_criado_em_idx on public.pedidos (criado_em desc);
 alter table public.pedidos enable row level security;
@@ -169,9 +199,6 @@ declare
   v_sob       boolean := false;
   v_tipo      text := coalesce(p_cliente ->> 'tipo', '');
 begin
-  if p_codigo is null or p_codigo !~ '^[A-Z0-9]{6}$' then
-    raise exception 'Código de pedido inválido';
-  end if;
   if jsonb_typeof(p_itens) <> 'array' or jsonb_array_length(p_itens) not between 1 and 50 then
     raise exception 'Itens inválidos';
   end if;
@@ -186,7 +213,7 @@ begin
     codigo, cliente_nome, cliente_telefone, tipo, endereco,
     data_desejada, periodo, observacoes, pagamento, taxa_entrega
   ) values (
-    p_codigo,
+    lpad(nextval('public.pedidos_codigo_seq')::text, 4, '0'),
     left(trim(p_cliente ->> 'nome'), 100),
     left(trim(coalesce(p_cliente ->> 'telefone', '')), 30),
     v_tipo,
@@ -231,6 +258,7 @@ begin
      set subtotal = v_subtotal, tem_sob_consulta = v_sob
    where id = v_pedido_id;
 
+  select codigo into p_codigo from public.pedidos where id = v_pedido_id;
   return p_codigo;
 end;
 $$;

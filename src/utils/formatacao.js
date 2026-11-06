@@ -33,10 +33,3 @@ export function hojeISO() {
   hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
   return hoje.toISOString().slice(0, 10);
 }
-
-/** Código curto e fácil de ler para o pedido (sem 0/O e 1/I). Ex.: "K7M2QX" */
-export function gerarCodigoPedido() {
-  const letras = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const aleatorios = crypto.getRandomValues(new Uint8Array(6));
-  return Array.from(aleatorios, (n) => letras[n % letras.length]).join("");
-}

@@ -18,13 +18,14 @@ export const STATUS_VENDA = ["confirmado", "entregue"];
  */
 export async function registrarPedido({ codigo, cliente, itens, taxa }) {
   const { supabasePedidos } = await obterSupabase();
-  const { error } = await supabasePedidos.rpc("criar_pedido", {
+  const { data, error } = await supabasePedidos.rpc("criar_pedido", {
     p_codigo: codigo,
     p_cliente: cliente,
     p_itens: itens,
     p_taxa: taxa
   });
   if (error) throw new Error(`Não foi possível registrar o pedido: ${error.message}`);
+  return data;
 }
 
 /** Pedidos (com itens) criados a partir de uma data. `desde` null = todos. */
@@ -65,8 +66,8 @@ export const valorPedido = (pedido) =>
  * resumo: calcularResumo(...) · dados: campos do formulário já limpos
  */
 export function registrarPedidoDaLoja(codigo, resumo, dados) {
-  if (!supabaseConfigurado) return; // modo demonstração
-  registrarPedido({
+  if (!supabaseConfigurado) return null; // modo demonstração
+  return registrarPedido({
     codigo,
     cliente: {
       nome: dados.nome,
@@ -80,5 +81,8 @@ export function registrarPedidoDaLoja(codigo, resumo, dados) {
     },
     itens: resumo.itens.map(({ produto, qtd }) => ({ produto_id: produto.id, quantidade: qtd })),
     taxa: resumo.taxa
-  }).catch((erro) => console.error(erro));
+  }).catch((erro) => {
+    console.error(erro);
+    return null;
+  });
 }
