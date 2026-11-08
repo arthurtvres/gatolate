@@ -4,7 +4,8 @@
    ===================================================================== */
 .produtos { position: relative; padding-top: 40px; padding-bottom: 40px; }
 
-.grade-produtos { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.grade-produtos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 560px) { .grade-produtos { gap: 20px; } }
 .sem-resultado { display: grid; justify-items: center; gap: 14px; padding: 30px 10px; text-align: center; font-size: 1.05rem; color: var(--texto-suave); }
 
 /* ---------- Card "É mais que um brownie... É um momento especial!" ----------
