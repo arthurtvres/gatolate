@@ -1,16 +1,49 @@
 /* Pedidos no banco (Supabase). */
 import { obterSupabase, supabaseConfigurado } from "../lib/supabase";
+import { salvarMeuPedido } from "../utils/meusPedidos";
 import { formatarEndereco } from "../utils/whatsapp";
 
+/** Nomes curtos dos status (abas e etiquetas do painel). */
 export const STATUS = {
   pendente: "Pendente",
   confirmado: "Confirmado",
+  preparando: "Em preparo",
+  pronto: "Pronto",
   entregue: "Entregue",
   cancelado: "Cancelado"
 };
 
+/** Caminho normal do pedido, em ordem (cancelado fica de fora: pode acontecer a qualquer momento). */
+export const ETAPAS = ["pendente", "confirmado", "preparando", "pronto", "entregue"];
+
 /** Status que contam como venda no faturamento. */
-export const STATUS_VENDA = ["confirmado", "entregue"];
+export const STATUS_VENDA = ["confirmado", "preparando", "pronto", "entregue"];
+
+/** Pedido finalizado: não muda mais (a não ser que a admin reabra). */
+export const statusFinal = (status) => status === "entregue" || status === "cancelado";
+
+/** Próxima etapa (null se já terminou ou foi cancelado). */
+export function proximoStatus(status) {
+  const i = ETAPAS.indexOf(status);
+  return i >= 0 && i < ETAPAS.length - 1 ? ETAPAS[i + 1] : null;
+}
+
+/** Etapa anterior (para desfazer um clique errado). */
+export function statusAnterior(status) {
+  const i = ETAPAS.indexOf(status);
+  return i > 0 ? ETAPAS[i - 1] : null;
+}
+
+/** Nome do status para o tipo do pedido: "pronto" vira "Saiu para entrega" ou "Pronto para retirada". */
+export function nomeStatus(status, tipo) {
+  const entrega = tipo === "entrega";
+  if (status === "pronto") return entrega ? "Saiu para entrega" : "Pronto para retirada";
+  if (status === "entregue") return entrega ? "Entregue" : "Retirado";
+  return STATUS[status] || status;
+}
+
+/** Nome do status para o cliente (acompanhamento): "pendente" vira "Pedido recebido". */
+export const nomeStatusCliente = (status, tipo) => (status === "pendente" ? "Pedido recebido" : nomeStatus(status, tipo));
 
 /**
  * Registra o pedido feito na loja. O servidor recalcula os preços a partir
@@ -25,6 +58,15 @@ export async function registrarPedido({ codigo, cliente, itens, taxa }) {
     p_taxa: taxa
   });
   if (error) throw new Error(`Não foi possível registrar o pedido: ${error.message}`);
+  // Banco antigo (antes do acompanhamento) devolvia só o código
+  return typeof data === "string" ? { codigo: data, token: null } : data;
+}
+
+/** Status do pedido para a página de acompanhamento do cliente (null se o link não existir). */
+export async function acompanharPedido(token) {
+  const { supabase } = await obterSupabase();
+  const { data, error } = await supabase.rpc("acompanhar_pedido", { p_token: token });
+  if (error) throw new Error(`Não foi possível carregar o pedido: ${error.message}`);
   return data;
 }
 
@@ -81,8 +123,14 @@ export function registrarPedidoDaLoja(codigo, resumo, dados) {
     },
     itens: resumo.itens.map(({ produto, qtd }) => ({ produto_id: produto.id, quantidade: qtd })),
     taxa: resumo.taxa
-  }).catch((erro) => {
-    console.error(erro);
-    return null;
-  });
+  })
+    .then((registro) => {
+      // Guarda no navegador para o cliente acompanhar depois
+      if (registro?.token) salvarMeuPedido(registro);
+      return registro;
+    })
+    .catch((erro) => {
+      console.error(erro);
+      return null;
+    });
 }

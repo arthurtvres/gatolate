@@ -145,9 +145,10 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
     gravarLocal(CHAVES.cliente, Object.fromEntries(CAMPOS_SALVOS.map((c) => [c, pedido[c]])));
 
     // O banco gera o código sequencial e devolve o mesmo valor para o WhatsApp.
-    const codigo = supabaseConfigurado ? await registrarPedidoDaLoja(null, resumo, pedido) : null;
+    // Também devolve o token do link de acompanhamento (/pedido/<token>).
+    const registro = supabaseConfigurado ? await registrarPedidoDaLoja(null, resumo, pedido) : null;
 
-    const url = linkWhatsApp(montarMensagem(resumo, pedido, codigo));
+    const url = linkWhatsApp(montarMensagem(resumo, pedido, registro?.codigo, registro?.token));
     onEnviado(url);
     abrirWhatsApp(url);
   }

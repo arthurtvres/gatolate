@@ -4,6 +4,7 @@ import { useSecaoAtiva } from "../../hooks/useSecaoAtiva";
 import { useCarrinho } from "../../hooks/useCarrinho";
 import { caminhoPublico } from "../../utils/produtos";
 import { plural } from "../../utils/formatacao";
+import BotaoMeusPedidos from "../pedido/BotaoMeusPedidos";
 import Contador from "../ui/Contador";
 import Icone from "../ui/Icone";
 
@@ -22,7 +23,7 @@ function rolarParaProdutos() {
   window.scrollTo({ top: Math.max(alvo, 0), behavior: "smooth" });
 }
 
-export default function Cabecalho({ busca, onBuscar, onAbrirCarrinho }) {
+export default function Cabecalho({ busca, onBuscar, onAbrirCarrinho, versaoPedido }) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [buscaAberta, setBuscaAberta] = useState(false);
   const jaRolouNaBusca = useRef(false);
@@ -106,6 +107,7 @@ export default function Cabecalho({ busca, onBuscar, onAbrirCarrinho }) {
         </nav>
 
         <div className="acoes">
+          <BotaoMeusPedidos key={versaoPedido} />
           <button
             ref={botaoBusca}
             className="icone-btn"

@@ -7,8 +7,9 @@ import Loja from "./paginas/Loja";
 
 // O painel só é baixado por quem abre /admin (clientes da loja não carregam esse código)
 const PainelAdmin = lazy(() => import("./admin/PainelAdmin"));
+const AcompanharPedido = lazy(() => import("./paginas/AcompanharPedido"));
 
-/** Rotas: "/" = loja · "/admin" = painel da dona (dashboard, pedidos, produtos). */
+/** Rotas: "/" = loja · "/pedido/:token" = cliente acompanha o pedido · "/admin" = painel da dona. */
 export default function App() {
   return (
     <>
@@ -19,6 +20,14 @@ export default function App() {
           element={
             <Suspense fallback={<p className="admin-carregando">Carregando painel...</p>}>
               <PainelAdmin />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/pedido/:token"
+          element={
+            <Suspense fallback={<p className="acompanhar__aviso">Buscando seu pedido...</p>}>
+              <AcompanharPedido />
             </Suspense>
           }
         />

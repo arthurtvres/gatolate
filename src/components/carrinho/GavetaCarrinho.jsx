@@ -26,6 +26,8 @@ export default function GavetaCarrinho({ aberta, tela, linkPedido, onIrPara, onF
   // Trava a rolagem da página por trás da gaveta
   useEffect(() => {
     document.body.classList.toggle("travado", aberta);
+    // Ao sair da loja (ex.: "Acompanhar pedido"), destrava a página seguinte
+    return () => document.body.classList.remove("travado");
   }, [aberta]);
 
   // A cada tela, o foco vai para o título (leitores de tela anunciam a mudança)

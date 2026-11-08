@@ -63,3 +63,8 @@
   65% { transform: scale(.9); }
   100% { transform: scale(1); }
 }
+
+/* Ícone Lucide dentro de botão: mesma cor do texto do botão (branco no rosa) */
+.btn .lucide { color: currentColor; }
+/* No cabeçalho marrom, ícone Lucide segue a cor clara do botão */
+.icone-btn .lucide { color: currentColor; }

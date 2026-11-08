@@ -183,6 +183,8 @@
 }
 .admin-status--pendente { background: #FFF1D6; color: #8A5A00; }
 .admin-status--confirmado { background: #DDF3E4; color: #1E6B3A; }
+.admin-status--preparando { background: #FCE6E6; color: #9E414B; }
+.admin-status--pronto { background: #ECE4F8; color: #4E3A8C; }
 .admin-status--entregue { background: #E3ECFA; color: #1F4E8C; }
 .admin-status--cancelado { background: #EFE9E6; color: #6E5A52; text-decoration: line-through; }
 .admin-status--visivel { background: #DDF3E4; color: #1E6B3A; }
@@ -221,8 +223,6 @@
   .admin-pedido__resumo { grid-template-columns: 90px 1fr 160px 110px; grid-template-areas: "codigo cliente valor status"; }
   .admin-pedido__valor { text-align: right; }
   .admin-pedido .admin-status { justify-self: end; }
-  .admin-pedido__acoes { grid-template-columns: 260px 1fr; align-items: center; }
-  .admin-pedido__acoes .admin-dica { grid-column: 2; }
 }
 
 /* ---------- Produtos ---------- */
@@ -269,4 +269,33 @@
 
 @media (min-width: 760px) {
   .admin-form__corpo { grid-template-columns: 260px 1fr; }
+}
+
+/* ---------- Etapas do pedido (botão "próxima etapa") ---------- */
+.admin-botao .lucide { width: 17px; height: 17px; color: currentColor; }
+.admin-botao--cheio { background: var(--rosa-botao); color: #fff; font-weight: 800; }
+.admin-botao--cheio:hover:not(:disabled) { background: var(--rosa-botao-hover); border-color: var(--rosa-botao-hover); }
+
+.admin-etapas { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid #F1E4DB; }
+.admin-etapas__trilha { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; counter-reset: etapa; }
+.admin-etapas__trilha li {
+  counter-increment: etapa;
+  padding: 4px 10px; border-radius: 999px;
+  background: #F4ECE7; color: var(--texto-suave); font-size: .8rem; font-weight: 600;
+}
+.admin-etapas__trilha li::before { content: counter(etapa) ". "; }
+.admin-etapas__trilha li.feita { background: #DDF3E4; color: #1E6B3A; }
+.admin-etapas__trilha li.feita::before { content: "✓ "; }
+.admin-etapas__trilha li.atual { background: var(--rosa-botao); color: #fff; }
+.admin-etapas__botoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.admin-etapas__botoes .admin-botao--cheio { min-height: 44px; padding-inline: 18px; }
+.admin-etapas__fim { font-weight: 700; color: #1E6B3A; }
+.admin-etapas__cancelar {
+  margin-left: auto; padding: 6px 4px; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: .85rem; color: #A11D17; text-decoration: underline;
+}
+.admin-etapas__confirmar { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-left: auto; font-size: .88rem; font-weight: 600; }
+.admin-link {
+  padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-weight: 700; color: var(--rosa-botao); text-decoration: underline;
 }

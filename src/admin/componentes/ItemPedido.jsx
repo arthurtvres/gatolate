@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { STATUS, valorPedido } from "../../services/pedidosApi";
+import { nomeStatus, valorPedido } from "../../services/pedidosApi";
 import { dataCurta, moeda } from "../../utils/formatacao";
+import { linkAcompanhar } from "../../utils/meusPedidos";
+import AvancarStatus from "./AvancarStatus";
 
 const dataHora = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
@@ -16,7 +18,7 @@ function lerValor(texto) {
 }
 
 /** Um pedido da lista, com detalhes, status e ajuste de valor. */
-export default function ItemPedido({ pedido, onAtualizar }) {
+export default function ItemPedido({ pedido, onAtualizar, onCopiado }) {
   const [valorTexto, setValorTexto] = useState(
     pedido.total_final !== null ? String(pedido.total_final).replace(".", ",") : ""
   );
@@ -47,7 +49,7 @@ export default function ItemPedido({ pedido, onAtualizar }) {
             {moeda(valor)}
             {pedido.tem_sob_consulta && pedido.total_final === null && <small> + sob consulta</small>}
           </span>
-          <span className={`admin-status admin-status--${pedido.status}`}>{STATUS[pedido.status]}</span>
+          <span className={`admin-status admin-status--${pedido.status}`}>{nomeStatus(pedido.status, pedido.tipo)}</span>
         </summary>
 
         <div className="admin-pedido__detalhes">
@@ -91,6 +93,25 @@ export default function ItemPedido({ pedido, onAtualizar }) {
               <dt>Pagamento</dt>
               <dd>{pedido.pagamento}</dd>
             </div>
+            {pedido.token && (
+              <div>
+                <dt>Acompanhamento</dt>
+                <dd>
+                  <button
+                    className="admin-link"
+                    type="button"
+                    onClick={() =>
+                      navigator.clipboard
+                        .writeText(linkAcompanhar(pedido.token))
+                        .then(() => onCopiado("Link copiado. É só colar no WhatsApp do cliente ♥"))
+                        .catch(() => onCopiado("Não deu para copiar o link"))
+                    }
+                  >
+                    Copiar link para o cliente
+                  </button>
+                </dd>
+              </div>
+            )}
             {pedido.observacoes && (
               <div>
                 <dt>Observações</dt>
@@ -99,21 +120,9 @@ export default function ItemPedido({ pedido, onAtualizar }) {
             )}
           </dl>
 
+          <AvancarStatus pedido={pedido} salvando={salvando} onMudar={(status) => salvar({ status })} />
+
           <div className="admin-pedido__acoes">
-            <label className="admin-campo admin-campo--linha">
-              <span>Status</span>
-              <select
-                value={pedido.status}
-                disabled={salvando}
-                onChange={(e) => salvar({ status: e.target.value })}
-              >
-                {Object.entries(STATUS).map(([id, rotulo]) => (
-                  <option key={id} value={id}>
-                    {rotulo}
-                  </option>
-                ))}
-              </select>
-            </label>
 
             <form
               className="admin-pedido__valor-final"

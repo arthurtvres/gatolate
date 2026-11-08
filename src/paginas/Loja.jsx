@@ -3,6 +3,7 @@ import CarrinhoFlutuante from "../components/carrinho/CarrinhoFlutuante";
 import GavetaCarrinho from "../components/carrinho/GavetaCarrinho";
 import Cabecalho from "../components/layout/Cabecalho";
 import Rodape from "../components/layout/Rodape";
+import AvisoPedido from "../components/pedido/AvisoPedido";
 import SecaoProdutos from "../components/produtos/SecaoProdutos";
 import SecaoContato from "../components/secoes/SecaoContato";
 import SecaoSobre from "../components/secoes/SecaoSobre";
@@ -21,12 +22,15 @@ export default function Loja() {
     tela: pedidoPendente ? "enviado" : "itens"
   });
   const [linkPedido, setLinkPedido] = useState(pedidoPendente || "");
+  // Muda a cada pedido enviado: o aviso "Acompanhar pedido" relê o pedido mais recente
+  const [versaoPedido, setVersaoPedido] = useState(0);
 
   const abrirCarrinho = useCallback(() => setGaveta({ aberta: true, tela: "itens" }), []);
   const fecharCarrinho = useCallback(() => setGaveta((g) => ({ ...g, aberta: false })), []);
   const irPara = useCallback((tela) => setGaveta((g) => ({ ...g, tela })), []);
   const aoEnviarPedido = useCallback((url) => {
     setLinkPedido(url);
+    setVersaoPedido((v) => v + 1);
     setGaveta((g) => ({ ...g, tela: "enviado" }));
   }, []);
 
@@ -36,9 +40,10 @@ export default function Loja() {
         Pular para o conteúdo
       </a>
 
-      <Cabecalho busca={busca} onBuscar={setBusca} onAbrirCarrinho={abrirCarrinho} />
+      <Cabecalho busca={busca} onBuscar={setBusca} onAbrirCarrinho={abrirCarrinho} versaoPedido={versaoPedido} />
 
       <main id="conteudo">
+        <AvisoPedido key={versaoPedido} />
         <SecaoProdutos busca={busca} />
         <Divisor />
         <SecaoSobre />

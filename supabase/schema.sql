@@ -99,7 +99,7 @@ create table if not exists public.pedidos (
   criado_em        timestamptz not null default now(),
   atualizado_em    timestamptz not null default now(),
   status           text not null default 'pendente'
-                   check (status in ('pendente', 'confirmado', 'entregue', 'cancelado')),
+                   check (status in ('pendente', 'confirmado', 'preparando', 'pronto', 'entregue', 'cancelado')),
   cliente_nome     text not null,
   cliente_telefone text not null,
   tipo             text not null check (tipo in ('entrega', 'retirada')),
@@ -142,6 +142,40 @@ select setval(
   (select count(*) > 0 from public.pedidos)
 );
 create index if not exists pedidos_criado_em_idx on public.pedidos (criado_em desc);
+
+-- Etapas do pedido (como no iFood):
+--   pendente → confirmado → preparando → pronto (saiu para entrega / pronto para retirada) → entregue
+--   cancelado pode acontecer em qualquer etapa.
+alter table public.pedidos drop constraint if exists pedidos_status_check;
+alter table public.pedidos add constraint pedidos_status_check
+  check (status in ('pendente', 'confirmado', 'preparando', 'pronto', 'entregue', 'cancelado'));
+
+-- Acompanhamento pelo cliente: o link /pedido/<token> mostra o status sem login.
+-- O token é aleatório (impossível de adivinhar) e só abre ESTE pedido.
+alter table public.pedidos add column if not exists token uuid not null default gen_random_uuid();
+create unique index if not exists pedidos_token_idx on public.pedidos (token);
+
+-- Horário em que o pedido entrou em cada etapa: { "pendente": "...", "confirmado": "..." }
+alter table public.pedidos add column if not exists status_em jsonb not null default '{}';
+
+create or replace function public.registrar_status_em()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'INSERT' or new.status is distinct from old.status then
+    new.status_em := coalesce(new.status_em, '{}') || jsonb_build_object(new.status, now());
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists pedidos_status_em on public.pedidos;
+create trigger pedidos_status_em before insert or update on public.pedidos
+  for each row execute function public.registrar_status_em();
+
+-- Pedidos antigos (de antes desta coluna): pelo menos o horário em que chegaram
+update public.pedidos set status_em = jsonb_build_object('pendente', criado_em) where status_em = '{}'::jsonb;
 alter table public.pedidos enable row level security;
 
 drop trigger if exists pedidos_atualizado_em on public.pedidos;
@@ -179,13 +213,15 @@ create policy "admin ve itens" on public.pedido_itens
 -- criar_pedido: chamada pela loja ao enviar o pedido para o WhatsApp.
 -- Preços e nomes vêm da tabela produtos, nunca do navegador.
 -- ---------------------------------------------------------------------
+-- (o tipo de retorno mudou de text para jsonb, então a versão antiga precisa sair antes)
+drop function if exists public.criar_pedido(text, jsonb, jsonb, numeric);
 create or replace function public.criar_pedido(
   p_codigo  text,
   p_cliente jsonb,
   p_itens   jsonb,
   p_taxa    numeric default 0
 )
-returns text
+returns jsonb
 language plpgsql
 security definer
 set search_path = public
@@ -258,11 +294,45 @@ begin
      set subtotal = v_subtotal, tem_sob_consulta = v_sob
    where id = v_pedido_id;
 
-  select codigo into p_codigo from public.pedidos where id = v_pedido_id;
-  return p_codigo;
+  return (select jsonb_build_object('codigo', codigo, 'token', token) from public.pedidos where id = v_pedido_id);
 end;
 $$;
 grant execute on function public.criar_pedido(text, jsonb, jsonb, numeric) to anon, authenticated;
+
+-- ---------------------------------------------------------------------
+-- acompanhar_pedido: usada pela página /pedido/<token> do cliente.
+-- Devolve só o necessário para acompanhar (sem telefone nem endereço).
+-- ---------------------------------------------------------------------
+create or replace function public.acompanhar_pedido(p_token uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'codigo',           p.codigo,
+    'status',           p.status,
+    'status_em',        p.status_em,
+    'tipo',             p.tipo,
+    'criado_em',        p.criado_em,
+    'atualizado_em',    p.atualizado_em,
+    'primeiro_nome',    split_part(p.cliente_nome, ' ', 1),
+    'pagamento',        p.pagamento,
+    'subtotal',         p.subtotal,
+    'taxa_entrega',     p.taxa_entrega,
+    'total_final',      p.total_final,
+    'tem_sob_consulta', p.tem_sob_consulta,
+    'itens', coalesce((
+      select jsonb_agg(jsonb_build_object('nome', i.nome, 'quantidade', i.quantidade, 'subtotal', i.subtotal) order by i.id)
+        from public.pedido_itens i
+       where i.pedido_id = p.id
+    ), '[]')
+  )
+  from public.pedidos p
+  where p.token = p_token;
+$$;
+grant execute on function public.acompanhar_pedido(uuid) to anon, authenticated;
 
 -- ---------------------------------------------------------------------
 -- ACESSO PELA API

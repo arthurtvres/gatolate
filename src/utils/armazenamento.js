@@ -6,6 +6,7 @@ export const CHAVES = {
   carrinho: "gatolate:carrinho",
   cliente: "gatolate:cliente",
   pedidoEnviado: "gatolate:pedido-enviado",
+  meusPedidos: "gatolate:meus-pedidos",
   produtos: "gatolate:produtos"
 };
 

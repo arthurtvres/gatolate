@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useToast } from "../../hooks/useToast";
-import { atualizarPedido, listarPedidos, STATUS } from "../../services/pedidosApi";
+import { atualizarPedido, listarPedidos, nomeStatus, STATUS } from "../../services/pedidosApi";
 import { normalizar, plural } from "../../utils/formatacao";
 import FiltroPeriodo from "../componentes/FiltroPeriodo";
 import ItemPedido from "../componentes/ItemPedido";
@@ -32,7 +32,9 @@ export default function Pedidos() {
     try {
       const atualizado = await atualizarPedido(id, campos);
       alterarDados((lista) => lista.map((p) => (p.id === id ? atualizado : p)));
-      mostrarToast(campos.status ? `Pedido marcado como ${STATUS[campos.status].toLowerCase()}` : "Valor salvo ♥");
+      mostrarToast(
+        campos.status ? `Pedido #${atualizado.codigo}: ${nomeStatus(campos.status, atualizado.tipo).toLowerCase()}` : "Valor salvo ♥"
+      );
     } catch (falha) {
       mostrarToast(falha.message);
     }
@@ -89,7 +91,7 @@ export default function Pedidos() {
           ) : (
             <ul className="admin-pedidos">
               {pedidos.map((pedido) => (
-                <ItemPedido key={pedido.id} pedido={pedido} onAtualizar={aoAtualizar} />
+                <ItemPedido key={pedido.id} pedido={pedido} onAtualizar={aoAtualizar} onCopiado={mostrarToast} />
               ))}
             </ul>
           )}

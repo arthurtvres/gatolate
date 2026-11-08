@@ -1,7 +1,15 @@
+import { Receipt } from "lucide-react";
+import { Link } from "react-router-dom";
+import { caminhoAcompanhar, ultimoPedido } from "../../utils/meusPedidos";
 import Icone from "../ui/Icone";
+
+const MEIA_HORA = 30 * 60 * 1000;
 
 /** Tela 3 da gaveta: depois de abrir o WhatsApp. */
 export default function PedidoEnviado({ linkPedido, onLimpar, onFechar }) {
+  // Pedido que acabou de ser registrado (se o banco estiver configurado)
+  const acompanhar = ultimoPedido(MEIA_HORA);
+
   return (
     <>
       <Icone nome="gato" className="enviado__gato" />
@@ -19,7 +27,13 @@ export default function PedidoEnviado({ linkPedido, onLimpar, onFechar }) {
         </a>
         .
       </p>
-      <button className="btn btn--cheio" type="button" onClick={onLimpar}>
+      {acompanhar && (
+        <Link className="btn btn--cheio" to={caminhoAcompanhar(acompanhar.token)}>
+          <Receipt aria-hidden="true" />
+          Acompanhar pedido #{acompanhar.codigo}
+        </Link>
+      )}
+      <button className={acompanhar ? "btn" : "btn btn--cheio"} type="button" onClick={onLimpar}>
         Limpar carrinho
       </button>
       <button className="btn-link" type="button" onClick={onFechar}>

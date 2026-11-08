@@ -3,6 +3,7 @@ import CONFIG from "../config/loja";
 import { CHAVES, sessao } from "./armazenamento";
 import { textoTotal } from "./carrinho";
 import { dataCurta, moeda } from "./formatacao";
+import { linkAcompanhar } from "./meusPedidos";
 import { nomeNoPedido } from "./produtos";
 
 /** Link do WhatsApp da loja com uma mensagem já escrita. */
@@ -22,8 +23,9 @@ export function formatarEndereco(dados) {
  * resumo: resultado de calcularResumo(itens, produtosPorId, dados.tipo)
  * dados: campos do formulário (nome, telefone, tipo, endereço, data...)
  * codigo: código do pedido (opcional; aparece no painel admin para conferir)
+ * token: link de acompanhamento do pedido (opcional)
  */
-export function montarMensagem(resumo, dados, codigo) {
+export function montarMensagem(resumo, dados, codigo, token) {
   const titulo = codigo ? `🧾 Pedido #${codigo}` : "🧾 Pedido";
   const linhas = [`Olá, ${CONFIG.nomeLoja}! 🐱🍫`, "Gostaria de fazer um pedido:", "", titulo, ""];
 
@@ -47,6 +49,7 @@ export function montarMensagem(resumo, dados, codigo) {
   if (quando) linhas.push(`📅 Para: ${quando}`);
   linhas.push(`💳 Pagamento: ${dados.pagamento}`);
   if (dados.obs) linhas.push(`📝 Observações: ${dados.obs}`);
+  if (token) linhas.push("", `📍 Acompanhe seu pedido: ${linkAcompanhar(token)}`);
 
   return linhas.join("\n");
 }
