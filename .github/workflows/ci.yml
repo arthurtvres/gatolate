@@ -1,0 +1,40 @@
+# Confere cada push e pull request: lint, testes e build.
+# Se algo falhar, o GitHub marca o commit com ❌ e avisa por e-mail.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um push novo cancela a verificação antiga do mesmo branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, testes e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes
+        run: npm test
+
+      # Sem as chaves do Supabase o build sai em modo demonstração, o que basta para conferir que compila
+      - name: Build
+        run: npm run build

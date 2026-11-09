@@ -30,6 +30,7 @@ O cliente monta o carrinho, preenche os dados de entrega e é levado ao WhatsApp
 ## Destaques técnicos
 
 - **Preço calculado no servidor:** o pedido é criado por uma função Postgres (`security definer`) que busca os preços na tabela de produtos. Nada que vem do navegador define valores.
+- **Proteção contra pedidos falsos:** `criar_pedido` limita pedidos por IP (5 a cada 15 min), por telefone (3 a cada 15 min) e da loja inteira (40 por hora), e confere no servidor as mesmas regras do formulário.
 - **Row Level Security em todas as tabelas:** visitantes só leem produtos ativos e só criam pedidos pela função. Leitura de pedidos e edição de produtos ficam restritas à tabela `admins`.
 - **Performance:** o painel é carregado sob demanda (`React.lazy`) e o SDK do Supabase por import dinâmico. O cliente da loja baixa ~103 KB gzip, e o cardápio aparece na hora a partir de cache local (*stale-while-revalidate*).
 - **Registro resiliente:** o pedido é enviado com `fetch keepalive`, então termina mesmo quando o celular troca a página pelo WhatsApp.
@@ -60,3 +61,14 @@ npm run dev
 ```
 
 Sem o `.env`, o projeto abre em modo demonstração. Para o painel, rode `supabase/schema.sql` no projeto Supabase e cadastre o usuário na tabela `admins`.
+
+## Testes
+
+```bash
+npm test            # roda uma vez
+npm run test:watch  # roda de novo a cada alteração
+```
+
+Os testes (Vitest) cobrem as regras puras: carrinho, validação do formulário, mensagem do WhatsApp, status e valor do pedido e métricas do dashboard. Ficam ao lado de cada arquivo (`*.test.js`).
+
+A cada push e pull request, o GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) roda lint, testes e build.

@@ -40,14 +40,10 @@
 @keyframes admin-pulsar { 50% { transform: scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .admin-nav__novos { animation: none; } }
 
-/* Botão de avisos: no celular fica só o sino */
+/* Botão de avisos: só o sino (preenchido = ativo, riscado = inativo) */
+.admin-avisos { padding-inline: 10px; }
 .admin-avisos svg { width: 18px; height: 18px; }
 .admin-avisos--denied { opacity: .7; }
-@media (max-width: 759px) {
-  .admin-avisos__rotulo {
-    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
-  }
-}
 
 .admin-topo__conta { display: flex; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
 .admin-topo__email { font-size: .85rem; opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }

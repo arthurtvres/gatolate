@@ -30,7 +30,7 @@
 }
 
 .modal-produto__foto { aspect-ratio: 4 / 3; background: var(--rosa-claro); overflow: hidden; }
-.modal-produto__foto img { width: 100%; height: 100%; object-fit: cover; }
+.modal-produto__foto img { width: 100%; height: 100%; object-fit: contain; }
 .modal-produto__foto .foto-reserva span { font-size: 2.2rem; }
 
 .modal-produto__info { display: grid; gap: 10px; align-content: start; padding: 22px 22px 26px; }

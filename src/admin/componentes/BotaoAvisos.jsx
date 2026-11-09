@@ -1,16 +1,16 @@
-import { Bell, BellOff, BellRing } from "lucide-react";
+import { Bell, BellOff } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "../../hooks/useToast";
 import { destravarSom, pedirPermissaoNotificacao, permissaoNotificacao, tocarAviso } from "../utils/avisos";
 
 const ESTADOS = {
-  granted: { Icone: BellRing, rotulo: "Avisos ativos", dica: "Você recebe som e notificação a cada pedido novo" },
+  granted: { Icone: Bell, rotulo: "Avisos ativos", dica: "Você recebe som e notificação a cada pedido novo" },
   denied: {
     Icone: BellOff,
     rotulo: "Notificações bloqueadas",
     dica: "O som e o aviso na tela continuam. Clique para ver como liberar as notificações."
   },
-  default: { Icone: Bell, rotulo: "Ativar avisos", dica: "Receber notificação a cada pedido novo" }
+  default: { Icone: BellOff, rotulo: "Ativar avisos", dica: "Receber notificação a cada pedido novo" }
 };
 
 const TEMPO_LEITURA = 7000;
@@ -50,11 +50,12 @@ export default function BotaoAvisos() {
     <button
       className={`admin-botao admin-botao--claro admin-avisos admin-avisos--${permissao}`}
       type="button"
-      title={dica}
+      title={`${rotulo} — ${dica}`}
+      aria-label={rotulo}
       onClick={aoClicar}
     >
-      <Icone aria-hidden="true" />
-      <span className="admin-avisos__rotulo">{rotulo}</span>
+      {/* Ativo = sino preenchido; inativo = sino riscado */}
+      <Icone aria-hidden="true" fill={permissao === "granted" ? "currentColor" : "none"} />
     </button>
   );
 }

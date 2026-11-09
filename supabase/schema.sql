@@ -210,6 +210,119 @@ create policy "admin ve itens" on public.pedido_itens
   for select to authenticated using (public.eh_admin());
 
 -- ---------------------------------------------------------------------
+-- PROTEÇÃO CONTRA PEDIDOS FALSOS
+-- A chave do site é pública (normal no Supabase), então qualquer um poderia
+-- chamar criar_pedido num loop. Estas regras limitam quantos pedidos entram
+-- e recusam dados que o formulário da loja nunca mandaria.
+-- ---------------------------------------------------------------------
+
+-- Registro mínimo de cada pedido aceito (só IP, telefone e horário).
+-- Sem políticas de RLS: ninguém lê nem escreve pela API, só as funções abaixo.
+create table if not exists public.tentativas_pedido (
+  id        bigint generated always as identity primary key,
+  ip        text,
+  telefone  text not null,
+  criado_em timestamptz not null default now()
+);
+create index if not exists tentativas_pedido_criado_em_idx on public.tentativas_pedido (criado_em);
+create index if not exists tentativas_pedido_ip_idx on public.tentativas_pedido (ip, criado_em);
+create index if not exists tentativas_pedido_telefone_idx on public.tentativas_pedido (telefone, criado_em);
+alter table public.tentativas_pedido enable row level security;
+revoke all on public.tentativas_pedido from anon, authenticated;
+
+-- IP de quem chamou a API (vem nos cabeçalhos repassados pelo Supabase). null se não houver.
+create or replace function public.ip_da_requisicao()
+returns text
+language sql
+stable
+as $$
+  with cabecalhos as (
+    select coalesce(nullif(current_setting('request.headers', true), ''), '{}')::jsonb as h
+  )
+  select nullif(trim(split_part(coalesce(h ->> 'cf-connecting-ip', h ->> 'x-real-ip', h ->> 'x-forwarded-for', ''), ',', 1)), '')
+    from cabecalhos;
+$$;
+
+-- Recusa o pedido se passar de algum limite; se não passar, registra a tentativa.
+create or replace function public.conferir_limite_pedidos(p_telefone text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  c_por_ip       constant integer  := 5;   -- pedidos por IP...
+  c_por_telefone constant integer  := 3;   -- ...e por telefone...
+  c_janela       constant interval := interval '15 minutes'; -- ...nesta janela
+  c_por_hora     constant integer  := 40;  -- teto da loja inteira por hora
+  c_mensagem     constant text     := 'Muitos pedidos em pouco tempo. Tente de novo em alguns minutos.';
+  v_ip           text := public.ip_da_requisicao();
+begin
+  -- Um pedido por vez: pedidos disparados juntos não passam do limite "em paralelo"
+  perform pg_advisory_xact_lock(hashtext('criar_pedido'));
+
+  -- Esquece o que já não conta para nenhum limite
+  delete from public.tentativas_pedido where criado_em < now() - interval '1 day';
+
+  if v_ip is not null and (
+    select count(*) from public.tentativas_pedido where ip = v_ip and criado_em > now() - c_janela
+  ) >= c_por_ip then
+    raise exception '%', c_mensagem;
+  end if;
+
+  if (
+    select count(*) from public.tentativas_pedido where telefone = p_telefone and criado_em > now() - c_janela
+  ) >= c_por_telefone then
+    raise exception '%', c_mensagem;
+  end if;
+
+  if (
+    select count(*) from public.tentativas_pedido where criado_em > now() - interval '1 hour'
+  ) >= c_por_hora then
+    raise exception 'A loja recebeu muitos pedidos agora. Tente de novo em alguns minutos.';
+  end if;
+
+  insert into public.tentativas_pedido (ip, telefone) values (v_ip, p_telefone);
+end;
+$$;
+revoke all on function public.conferir_limite_pedidos(text) from public, anon, authenticated;
+
+-- Mesmas regras do formulário da loja, conferidas no servidor (quem chama a API direto não passa pelo formulário).
+create or replace function public.validar_cliente(p_cliente jsonb)
+returns void
+language plpgsql
+immutable
+as $$
+declare
+  v_tipo     text := coalesce(p_cliente ->> 'tipo', '');
+  v_digitos  text := regexp_replace(coalesce(p_cliente ->> 'telefone', ''), '\D', '', 'g');
+begin
+  if jsonb_typeof(p_cliente) is distinct from 'object' then
+    raise exception 'Dados do cliente inválidos';
+  end if;
+  if v_tipo not in ('entrega', 'retirada') then
+    raise exception 'Tipo de entrega inválido';
+  end if;
+  if length(trim(coalesce(p_cliente ->> 'nome', ''))) not between 2 and 100 then
+    raise exception 'Nome inválido';
+  end if;
+  if length(v_digitos) not between 10 and 11 then
+    raise exception 'Telefone inválido';
+  end if;
+  if v_tipo = 'entrega' and length(trim(coalesce(p_cliente ->> 'endereco', ''))) < 5 then
+    raise exception 'Endereço inválido';
+  end if;
+  if trim(coalesce(p_cliente ->> 'pagamento', '')) = '' then
+    raise exception 'Forma de pagamento inválida';
+  end if;
+end;
+$$;
+
+-- Funções internas: só criar_pedido usa (não ficam expostas na API)
+revoke all on function public.ip_da_requisicao() from public, anon, authenticated;
+revoke all on function public.validar_cliente(jsonb) from public, anon, authenticated;
+
+-- ---------------------------------------------------------------------
 -- criar_pedido: chamada pela loja ao enviar o pedido para o WhatsApp.
 -- Preços e nomes vêm da tabela produtos, nunca do navegador.
 -- ---------------------------------------------------------------------
@@ -234,15 +347,14 @@ declare
   v_sob       boolean := false;
   v_tipo      text := coalesce(p_cliente ->> 'tipo', '');
 begin
-  if jsonb_typeof(p_itens) <> 'array' or jsonb_array_length(p_itens) not between 1 and 50 then
+  -- "is distinct from" também recusa null (com "<>", null passaria direto)
+  if jsonb_typeof(p_itens) is distinct from 'array' or jsonb_array_length(p_itens) not between 1 and 50 then
     raise exception 'Itens inválidos';
   end if;
-  if v_tipo not in ('entrega', 'retirada') then
-    raise exception 'Tipo de entrega inválido';
-  end if;
-  if length(trim(coalesce(p_cliente ->> 'nome', ''))) < 2 then
-    raise exception 'Nome inválido';
-  end if;
+  perform public.validar_cliente(p_cliente);
+  -- Depois das validações: dado inválido não gasta o limite.
+  -- Se algo falhar mais adiante (ex.: produto indisponível), o registro também é desfeito.
+  perform public.conferir_limite_pedidos(regexp_replace(p_cliente ->> 'telefone', '\D', '', 'g'));
 
   insert into public.pedidos (
     codigo, cliente_nome, cliente_telefone, tipo, endereco,
