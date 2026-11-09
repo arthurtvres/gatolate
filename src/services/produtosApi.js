@@ -1,11 +1,12 @@
 /* Produtos no banco (Supabase). O app usa nomes em camelCase;
    o banco usa snake_case. A conversão fica só aqui. */
 import { obterSupabase } from "../lib/supabase";
+import { falharSe } from "./erros";
 
 const BUCKET_FOTOS = "produtos";
 
 /** Linha do banco → produto do app */
-export function deBanco(linha) {
+function deBanco(linha) {
   return {
     id: linha.id,
     nome: linha.nome,
@@ -40,10 +41,6 @@ function paraBanco(produto) {
   };
 }
 
-function falhar(error, acao) {
-  if (error) throw new Error(`Não foi possível ${acao}: ${error.message}`);
-}
-
 /** Produtos visíveis para os clientes, na ordem definida pela admin. */
 export async function listarProdutosAtivos() {
   const { supabase } = await obterSupabase();
@@ -53,7 +50,7 @@ export async function listarProdutosAtivos() {
     .eq("ativo", true)
     .order("ordem")
     .order("nome");
-  falhar(error, "carregar os produtos");
+  falharSe(error, "carregar os produtos");
   return data.map(deBanco);
 }
 
@@ -61,7 +58,7 @@ export async function listarProdutosAtivos() {
 export async function listarTodosProdutos() {
   const { supabase } = await obterSupabase();
   const { data, error } = await supabase.from("produtos").select("*").order("ordem").order("nome");
-  falhar(error, "carregar os produtos");
+  falharSe(error, "carregar os produtos");
   return data.map(deBanco);
 }
 
@@ -69,20 +66,20 @@ export async function listarTodosProdutos() {
 export async function salvarProduto(produto) {
   const { supabase } = await obterSupabase();
   const { data, error } = await supabase.from("produtos").upsert(paraBanco(produto)).select().single();
-  falhar(error, "salvar o produto");
+  falharSe(error, "salvar o produto");
   return deBanco(data);
 }
 
 export async function alterarAtivo(id, ativo) {
   const { supabase } = await obterSupabase();
   const { error } = await supabase.from("produtos").update({ ativo }).eq("id", id);
-  falhar(error, ativo ? "mostrar o produto" : "ocultar o produto");
+  falharSe(error, ativo ? "mostrar o produto" : "ocultar o produto");
 }
 
 export async function excluirProduto(id) {
   const { supabase } = await obterSupabase();
   const { error } = await supabase.from("produtos").delete().eq("id", id);
-  falhar(error, "excluir o produto");
+  falharSe(error, "excluir o produto");
 }
 
 /** Envia a foto para o Storage e devolve o link público. */
@@ -93,6 +90,6 @@ export async function enviarFoto(arquivo, idProduto) {
   const { error } = await supabase.storage
     .from(BUCKET_FOTOS)
     .upload(caminho, arquivo, { cacheControl: "31536000", contentType: arquivo.type });
-  falhar(error, "enviar a foto");
+  falharSe(error, "enviar a foto");
   return supabase.storage.from(BUCKET_FOTOS).getPublicUrl(caminho).data.publicUrl;
 }

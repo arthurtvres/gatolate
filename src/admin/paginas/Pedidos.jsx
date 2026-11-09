@@ -1,24 +1,22 @@
 import { useMemo, useState } from "react";
 import { useToast } from "../../hooks/useToast";
-import { atualizarPedido, listarPedidos, nomeStatus, STATUS } from "../../services/pedidosApi";
+import { atualizarPedido } from "../../services/pedidosApi";
 import { normalizar, plural } from "../../utils/formatacao";
+import { nomeStatus, STATUS } from "../../utils/pedido";
+import ErroCarregamento from "../componentes/ErroCarregamento";
 import FiltroPeriodo from "../componentes/FiltroPeriodo";
 import ItemPedido from "../componentes/ItemPedido";
-import { useConsulta } from "../hooks/useConsulta";
-import { inicioDoPeriodo } from "../utils/metricas";
+import { usePedidosDoPeriodo } from "../hooks/usePedidosDoPeriodo";
 
 export default function Pedidos() {
   const [periodo, setPeriodo] = useState("30d");
   const [status, setStatus] = useState("todos");
   const [busca, setBusca] = useState("");
   const mostrarToast = useToast();
-  const { dados, carregando, erro, recarregar, alterarDados } = useConsulta(
-    () => listarPedidos(inicioDoPeriodo(periodo)),
-    `pedidos-${periodo}`
-  );
+  const { dados, carregando, erro, recarregar, alterarDados } = usePedidosDoPeriodo(periodo);
 
   const pedidos = useMemo(() => {
-    const termo = normalizar(busca.trim());
+    const termo = normalizar(busca);
     return (dados || []).filter(
       (p) =>
         (status === "todos" || p.status === status) &&
@@ -72,14 +70,7 @@ export default function Pedidos() {
         </label>
       </div>
 
-      {erro && (
-        <p className="admin-erro" role="alert">
-          {erro}{" "}
-          <button className="admin-botao" type="button" onClick={recarregar}>
-            Tentar de novo
-          </button>
-        </p>
-      )}
+      <ErroCarregamento erro={erro} onTentarDeNovo={recarregar} />
 
       {!dados ? (
         <p className="admin-carregando">Carregando pedidos...</p>
@@ -91,7 +82,7 @@ export default function Pedidos() {
           ) : (
             <ul className="admin-pedidos">
               {pedidos.map((pedido) => (
-                <ItemPedido key={pedido.id} pedido={pedido} onAtualizar={aoAtualizar} onCopiado={mostrarToast} />
+                <ItemPedido key={pedido.id} pedido={pedido} onAtualizar={aoAtualizar} onAvisar={mostrarToast} />
               ))}
             </ul>
           )}

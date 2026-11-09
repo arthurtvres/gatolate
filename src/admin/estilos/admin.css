@@ -23,11 +23,32 @@
 .admin-topo__marca span { font-size: 1.6rem; }
 .admin-nav { display: flex; gap: 4px; order: 3; width: 100%; overflow-x: auto; }
 .admin-nav a {
+  display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 14px; border-radius: 999px;
   color: var(--creme); text-decoration: none; font-weight: 700; font-size: .95rem; white-space: nowrap;
 }
 .admin-nav a:hover { background: rgba(251, 241, 230, .1); }
 .admin-nav a.active { background: var(--creme); color: var(--marrom); }
+
+/* Pedidos novos ainda não vistos */
+.admin-nav__novos {
+  display: inline-grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: var(--rosa-botao); color: #fff; font-size: .75rem; font-weight: 800; line-height: 1;
+  animation: admin-pulsar 1.6s ease-in-out infinite;
+}
+@keyframes admin-pulsar { 50% { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .admin-nav__novos { animation: none; } }
+
+/* Botão de avisos: no celular fica só o sino */
+.admin-avisos svg { width: 18px; height: 18px; }
+.admin-avisos--denied { opacity: .7; }
+@media (max-width: 759px) {
+  .admin-avisos__rotulo {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+}
+
 .admin-topo__conta { display: flex; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
 .admin-topo__email { font-size: .85rem; opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
 

@@ -18,7 +18,7 @@ export default function GavetaCarrinho({ aberta, tela, linkPedido, onIrPara, onF
   const mostrarToast = useToast();
   const gavetaRef = useRef(null);
   const tituloRef = useRef(null);
-  // Trocar a key recria o formulário (limpa data/observações e recarrega os dados salvos)
+  // Trocar a key recria o formulário (limpa as observações e recarrega os dados salvos)
   const [versaoFormulario, setVersaoFormulario] = useState(0);
 
   usePrenderFoco(gavetaRef, aberta, onFechar);

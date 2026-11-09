@@ -5,18 +5,17 @@ import BAIRROS from "../../config/bairros";
 import CONFIG from "../../config/loja";
 import { useCarrinho } from "../../hooks/useCarrinho";
 import { useProdutos } from "../../hooks/useProdutos";
-import { supabaseConfigurado } from "../../lib/supabase";
 import { registrarPedidoDaLoja } from "../../services/pedidosApi";
 import { CHAVES, gravarLocal, lerLocal } from "../../utils/armazenamento";
 import { calcularResumo, textoNota, textoTotal } from "../../utils/carrinho";
-import { mascararTelefone } from "../../utils/formatacao";
+import { formatarEndereco, mascararTelefone } from "../../utils/formatacao";
 import { iconePagamento, nomePagamento } from "../../utils/pagamentos";
 import { validarCampo, validarFormulario } from "../../utils/validacao";
-import { abrirWhatsApp, formatarEndereco, linkWhatsApp, montarMensagem } from "../../utils/whatsapp";
+import { abrirWhatsApp, linkWhatsApp, montarMensagem } from "../../utils/whatsapp";
 import CampoTexto from "../ui/CampoTexto";
+import Icone from "../ui/Icone";
 import CampoBairro from "./CampoBairro";
 import ResumoItens from "./ResumoItens";
-import Icone from "../ui/Icone";
 
 /** Campos lembrados para o próximo pedido. */
 const CAMPOS_SALVOS = ["nome", "telefone", "rua", "numero", "bairro", "complemento"];
@@ -31,8 +30,6 @@ const DADOS_VAZIOS = {
   bairro: "",
   bairroOutro: false, // true = bairro digitado à mão (não está na lista)
   complemento: "",
-  data: "",
-  periodo: "",
   obs: "",
   pagamento: "0" // posição em CONFIG.pagamentos
 };
@@ -146,7 +143,7 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
 
     // O banco gera o código sequencial e devolve o mesmo valor para o WhatsApp.
     // Também devolve o token do link de acompanhamento (/pedido/<token>).
-    const registro = supabaseConfigurado ? await registrarPedidoDaLoja(null, resumo, pedido) : null;
+    const registro = await registrarPedidoDaLoja(resumo, pedido);
 
     const url = linkWhatsApp(montarMensagem(resumo, pedido, registro?.codigo, registro?.token));
     onEnviado(url);
@@ -247,18 +244,6 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
         </fieldset>
       )}
 
-      {/* <div className="campo">
-        <label htmlFor="f-periodo">
-          Horário <span className="opcional">(opcional)</span>
-        </label>
-        <select id="f-periodo" name="periodo" value={dados.periodo} onChange={aoMudar}>
-          <option value="">Qualquer horário</option>
-          <option value="de manhã">De manhã</option>
-          <option value="à tarde">À tarde</option>
-          <option value="à noite">À noite</option>
-        </select>
-      </div> */}
-
       <fieldset className="campo">
         <legend>Forma de pagamento</legend>
         <div className="opcoes opcoes--tres">
@@ -278,10 +263,6 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
             </label>
           ))}
         </div>
-        {/* <p className="nota nota--icone">
-          <MessageCircle aria-hidden="true" />
-          O pagamento é combinado direto com a gente pelo WhatsApp
-        </p> */}
       </fieldset>
 
       <CampoTexto

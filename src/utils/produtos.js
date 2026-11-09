@@ -1,4 +1,5 @@
 /* Funções de produto (puras: recebem o produto, não buscam nada). */
+import { normalizar } from "./formatacao";
 
 /** true se o produto tem preço (false = "Sob consulta"). */
 export const temPreco = (produto) => typeof produto.preco === "number";
@@ -12,10 +13,7 @@ export const caminhoPublico = (arquivo) =>
 
 /** "Brownie de Ninho!" → "brownie-de-ninho" (id de produto novo). */
 export const gerarId = (nome) =>
-  nome
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
+  normalizar(nome)
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);

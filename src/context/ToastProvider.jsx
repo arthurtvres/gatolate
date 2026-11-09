@@ -8,10 +8,11 @@ export function ToastProvider({ children }) {
   const [toast, setToast] = useState({ mensagem: "", visivel: false });
   const timer = useRef();
 
-  const mostrar = useCallback((mensagem) => {
+  /** mostrar(mensagem) · mostrar(mensagem, ms) para textos que pedem mais tempo de leitura */
+  const mostrar = useCallback((mensagem, duracao = DURACAO) => {
     setToast({ mensagem, visivel: true });
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setToast((t) => ({ ...t, visivel: false })), DURACAO);
+    timer.current = setTimeout(() => setToast((t) => ({ ...t, visivel: false })), duracao);
   }, []);
 
   useEffect(() => () => clearTimeout(timer.current), []);

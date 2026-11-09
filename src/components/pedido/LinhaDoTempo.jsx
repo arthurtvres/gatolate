@@ -1,5 +1,5 @@
 import { Bike, ChefHat, CircleCheck, ClipboardList, Heart, Store } from "lucide-react";
-import { ETAPAS, nomeStatusCliente } from "../../services/pedidosApi";
+import { ETAPAS, nomeStatusCliente } from "../../utils/pedido";
 
 const hora = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 

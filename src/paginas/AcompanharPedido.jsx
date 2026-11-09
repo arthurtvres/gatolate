@@ -5,32 +5,27 @@ import LinhaDoTempo from "../components/pedido/LinhaDoTempo";
 import Icone from "../components/ui/Icone";
 import CONFIG from "../config/loja";
 import { useAcompanhamento } from "../hooks/useAcompanhamento";
-import { nomeStatusCliente, valorPedido } from "../services/pedidosApi";
 import { moeda } from "../utils/formatacao";
+import { ehEntrega, faltaValorFinal, nomeStatusCliente, valorPedido } from "../utils/pedido";
 import { caminhoPublico } from "../utils/produtos";
 import { linkWhatsApp } from "../utils/whatsapp";
 
 const hora = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
 /** Frase embaixo do status, para o cliente saber o que acontece agora. */
+const EXPLICACOES = {
+  pendente: "Recebemos seu pedido! Assim que a loja confirmar, você vê aqui.",
+  confirmado: "A loja confirmou seu pedido. Já já começa o preparo.",
+  preparando: "Seus brownies estão sendo preparados com carinho.",
+  pronto: "Seu pedido está pronto. Pode vir buscar!",
+  prontoEntrega: "Seu pedido está a caminho. Fique de olho!",
+  entregue: "Pedido finalizado. Bom apetite! ♥",
+  cancelado: "Este pedido foi cancelado. Se tiver dúvidas, fale com a gente pelo WhatsApp."
+};
+
 function explicacao(status, tipo) {
-  const entrega = tipo === "entrega";
-  switch (status) {
-    case "pendente":
-      return "Recebemos seu pedido! Assim que a loja confirmar, você vê aqui.";
-    case "confirmado":
-      return "A loja confirmou seu pedido. Já já começa o preparo.";
-    case "preparando":
-      return "Seus brownies estão sendo preparados com carinho.";
-    case "pronto":
-      return entrega ? "Seu pedido está a caminho. Fique de olho!" : "Seu pedido está pronto. Pode vir buscar!";
-    case "entregue":
-      return "Pedido finalizado. Bom apetite! ♥";
-    case "cancelado":
-      return "Este pedido foi cancelado. Se tiver dúvidas, fale com a gente pelo WhatsApp.";
-    default:
-      return "";
-  }
+  if (status === "pronto" && ehEntrega(tipo)) return EXPLICACOES.prontoEntrega;
+  return EXPLICACOES[status] || "";
 }
 
 /** Página /pedido/:token — o cliente acompanha o status sem login, como no iFood. */
@@ -130,7 +125,7 @@ function DetalhesPedido({ pedido }) {
           <span>Total</span>
           <strong>
             {moeda(valor)}
-            {pedido.tem_sob_consulta && pedido.total_final === null && <small> + sob consulta</small>}
+            {faltaValorFinal(pedido) && <small> + sob consulta</small>}
           </strong>
         </div>
         {pedido.pagamento && <p className="nota">Pagamento: {pedido.pagamento}</p>}

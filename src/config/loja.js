@@ -11,8 +11,6 @@ const CONFIG = {
     proposito: "Transformar momentos simples em doces memórias!",
     sobre: [
       "O Gatolate nasceu da mistura de duas coisas que amamos: gatinhos e doces! 🍫🐈 Nosso nome carrega esse carinho pelos nossos companheiros de quatro patas e a vontade de compartilhar momentos doces e especiais através dos nossos brownies. Cada detalhe é pensado com muito carinho, desde a preparação até a entrega, para que cada pedacinho leve um pouquinho de amor até vocês."
-      // "A Gatolate nasceu na cozinha de casa, entre uma fornada e outra, com a ajuda (nem sempre útil) da nossa gatinha, que vive rondando o forno.",
-      // "Cada brownie é feito à mão, em pequenas quantidades, com chocolate de qualidade e aquela casquinha crocante que a gente ama. Fazemos também caixas personalizadas para presentes, festas e datas especiais."
     ],
 
     // Mensagem que já vem escrita quando o cliente clica em "Falar no WhatsApp".

@@ -1,6 +1,6 @@
 import { ArrowRight, RotateCcw, Undo2 } from "lucide-react";
 import { useState } from "react";
-import { ETAPAS, nomeStatus, proximoStatus, statusAnterior } from "../../services/pedidosApi";
+import { ETAPAS, nomeStatus, proximoStatus, statusAnterior } from "../../utils/pedido";
 
 /** Texto do botão principal: a ação que leva para a próxima etapa. */
 function acaoPara(proximo, tipo) {

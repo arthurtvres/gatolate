@@ -3,6 +3,7 @@ import FotoProduto from "../../components/produtos/FotoProduto";
 import PrecoProduto from "../../components/produtos/PrecoProduto";
 import { useToast } from "../../hooks/useToast";
 import { alterarAtivo, excluirProduto, listarTodosProdutos } from "../../services/produtosApi";
+import ErroCarregamento from "../componentes/ErroCarregamento";
 import FormProduto from "../componentes/FormProduto";
 import { useConsulta } from "../hooks/useConsulta";
 
@@ -58,14 +59,7 @@ export default function Produtos() {
         clientes.
       </p>
 
-      {erro && (
-        <p className="admin-erro" role="alert">
-          {erro}{" "}
-          <button className="admin-botao" type="button" onClick={recarregar}>
-            Tentar de novo
-          </button>
-        </p>
-      )}
+      <ErroCarregamento erro={erro} onTentarDeNovo={recarregar} />
 
       {!produtos ? (
         <p className="admin-carregando">Carregando produtos...</p>

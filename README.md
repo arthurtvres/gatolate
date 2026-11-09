@@ -17,12 +17,13 @@ O cliente monta o carrinho, preenche os dados de entrega e é levado ao WhatsApp
 - Login com e-mail e senha, com acesso restrito a contas autorizadas
 - Dashboard: faturamento, vendas, ticket médio, pendentes, faturamento por dia e ranking de produtos, com filtro de período
 - Gestão de pedidos: status (pendente → confirmado → entregue/cancelado), ajuste de valor final e busca por código, nome ou telefone
+- Aviso de pedido novo em tempo real: som, notificação do navegador, contador no menu e na aba, listas atualizadas sozinhas
 - Gestão de produtos: criar, editar, ocultar e excluir, com upload de foto
 
 ## Stack
 
 - **React 19** + **JavaScript**, **Vite**, **React Router**
-- **Supabase**: Postgres, autenticação, storage de imagens e Row Level Security
+- **Supabase**: Postgres, autenticação, storage de imagens, Realtime e Row Level Security
 - CSS puro organizado por camadas (base, componentes, layout e seções), sem framework de UI
 - Gráficos em SVG feitos à mão, sem biblioteca
 
@@ -30,7 +31,7 @@ O cliente monta o carrinho, preenche os dados de entrega e é levado ao WhatsApp
 
 - **Preço calculado no servidor:** o pedido é criado por uma função Postgres (`security definer`) que busca os preços na tabela de produtos. Nada que vem do navegador define valores.
 - **Row Level Security em todas as tabelas:** visitantes só leem produtos ativos e só criam pedidos pela função. Leitura de pedidos e edição de produtos ficam restritas à tabela `admins`.
-- **Performance:** o painel é carregado sob demanda (`React.lazy`) e o SDK do Supabase por import dinâmico. O cliente da loja baixa ~95 KB gzip, e o cardápio aparece na hora a partir de cache local (*stale-while-revalidate*).
+- **Performance:** o painel é carregado sob demanda (`React.lazy`) e o SDK do Supabase por import dinâmico. O cliente da loja baixa ~103 KB gzip, e o cardápio aparece na hora a partir de cache local (*stale-while-revalidate*).
 - **Registro resiliente:** o pedido é enviado com `fetch keepalive`, então termina mesmo quando o celular troca a página pelo WhatsApp.
 - **Acessibilidade:** HTML semântico, foco gerenciado em modal e gaveta (`<dialog>` nativo e foco preso), navegação por teclado nos gráficos, tabela alternativa para cada gráfico e contraste AA.
 - **Modo demonstração:** sem as variáveis do Supabase, a loja roda com o cardápio de `src/config/loja.js`.

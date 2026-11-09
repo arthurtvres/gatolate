@@ -16,7 +16,7 @@ export default function SecaoProdutos({ busca }) {
 
   // Filtra pelo nome e pela descrição, ignorando acentos e maiúsculas
   const produtos = useMemo(() => {
-    const termo = normalizar(busca.trim());
+    const termo = normalizar(busca);
     if (!termo) return todos;
     return todos.filter((p) => normalizar(`${p.nome} ${p.descricao || ""}`).includes(termo));
   }, [busca, todos]);

@@ -2,26 +2,29 @@
 import CONFIG from "../config/loja";
 import { CHAVES, sessao } from "./armazenamento";
 import { textoTotal } from "./carrinho";
-import { dataCurta, moeda } from "./formatacao";
+import { formatarEndereco, moeda } from "./formatacao";
 import { linkAcompanhar } from "./meusPedidos";
+import { ehEntrega } from "./pedido";
 import { nomeNoPedido } from "./produtos";
 
-/** Link do WhatsApp da loja com uma mensagem já escrita. */
-export function linkWhatsApp(mensagem) {
-  const numero = String(CONFIG.whatsapp).replace(/\D/g, "");
-  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+const DDI_BRASIL = "55";
+
+/** Link de conversa no WhatsApp com um número (só dígitos, com DDI) e mensagem opcional. */
+function linkConversa(numero, mensagem) {
+  const texto = mensagem ? `?text=${encodeURIComponent(mensagem)}` : "";
+  return `https://wa.me/${String(numero).replace(/\D/g, "")}${texto}`;
 }
 
-/** "Rua X, 123 – Bairro Y (apto 4)" */
-export function formatarEndereco(dados) {
-  const complemento = dados.complemento ? ` (${dados.complemento})` : "";
-  return `${dados.rua}, ${dados.numero} – ${dados.bairro}${complemento}`;
-}
+/** Link do WhatsApp da loja com uma mensagem já escrita. */
+export const linkWhatsApp = (mensagem) => linkConversa(CONFIG.whatsapp, mensagem);
+
+/** "(11) 98888-7777" → link do WhatsApp do cliente (usado no painel). */
+export const linkWhatsAppCliente = (telefone) => linkConversa(`${DDI_BRASIL}${telefone.replace(/\D/g, "")}`);
 
 /**
  * Texto do pedido, no formato combinado com a loja.
  * resumo: resultado de calcularResumo(itens, produtosPorId, dados.tipo)
- * dados: campos do formulário (nome, telefone, tipo, endereço, data...)
+ * dados: campos do formulário (nome, telefone, tipo, endereço...)
  * codigo: código do pedido (opcional; aparece no painel admin para conferir)
  * token: link de acompanhamento do pedido (opcional)
  */
@@ -39,14 +42,7 @@ export function montarMensagem(resumo, dados, codigo, token) {
   linhas.push(`💰 Total: ${textoTotal(resumo)}${extra}`);
 
   linhas.push("", `👤 Nome: ${dados.nome}`, `📱 Telefone: ${dados.telefone}`);
-  if (dados.tipo === "entrega") {
-    linhas.push(`🚚 Entrega: ${formatarEndereco(dados)}`);
-  } else {
-    linhas.push("🏠 Retirada no local");
-  }
-
-  const quando = [dados.data && dataCurta(dados.data), dados.periodo].filter(Boolean).join(", ");
-  if (quando) linhas.push(`📅 Para: ${quando}`);
+  linhas.push(ehEntrega(dados.tipo) ? `🚚 Entrega: ${formatarEndereco(dados)}` : "🏠 Retirada no local");
   linhas.push(`💳 Pagamento: ${dados.pagamento}`);
   if (dados.obs) linhas.push(`📝 Observações: ${dados.obs}`);
   if (token) linhas.push("", `📍 Acompanhe seu pedido: ${linkAcompanhar(token)}`);

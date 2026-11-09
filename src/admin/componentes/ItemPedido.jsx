@@ -1,32 +1,18 @@
 import { useState } from "react";
-import { nomeStatus, valorPedido } from "../../services/pedidosApi";
-import { dataCurta, moeda } from "../../utils/formatacao";
+import { decimal, lerMoeda, moeda } from "../../utils/formatacao";
 import { linkAcompanhar } from "../../utils/meusPedidos";
+import { ehEntrega, faltaValorFinal, nomeStatus, valorPedido } from "../../utils/pedido";
+import { linkWhatsAppCliente } from "../../utils/whatsapp";
 import AvancarStatus from "./AvancarStatus";
 
 const dataHora = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
-/** "(11) 98888-7777" → link do WhatsApp do cliente */
-const whatsDoCliente = (telefone) => `https://wa.me/55${telefone.replace(/\D/g, "")}`;
-
-/** "1.234,50" ou "1234.5" → 1234.5 (null se vazio ou inválido) */
-function lerValor(texto) {
-  const limpo = texto.trim().replace(/[^\d,.-]/g, "");
-  if (!limpo) return null;
-  const numero = Number(limpo.includes(",") ? limpo.replace(/\./g, "").replace(",", ".") : limpo);
-  return Number.isFinite(numero) && numero >= 0 ? numero : NaN;
-}
+const totalFinal = (pedido) => (pedido.total_final === null ? null : Number(pedido.total_final));
 
 /** Um pedido da lista, com detalhes, status e ajuste de valor. */
-export default function ItemPedido({ pedido, onAtualizar, onCopiado }) {
-  const [valorTexto, setValorTexto] = useState(
-    pedido.total_final !== null ? String(pedido.total_final).replace(".", ",") : ""
-  );
+export default function ItemPedido({ pedido, onAtualizar, onAvisar }) {
   const [salvando, setSalvando] = useState(false);
-  const valor = valorPedido(pedido);
-  const valorDigitado = lerValor(valorTexto);
-  const valorInvalido = Number.isNaN(valorDigitado);
-  const valorMudou = !valorInvalido && valorDigitado !== (pedido.total_final === null ? null : Number(pedido.total_final));
+  const entrega = ehEntrega(pedido.tipo);
 
   async function salvar(campos) {
     setSalvando(true);
@@ -34,7 +20,12 @@ export default function ItemPedido({ pedido, onAtualizar, onCopiado }) {
     setSalvando(false);
   }
 
-  const quando = [pedido.data_desejada && dataCurta(pedido.data_desejada), pedido.periodo].filter(Boolean).join(", ");
+  function copiarLinkAcompanhar() {
+    navigator.clipboard
+      .writeText(linkAcompanhar(pedido.token))
+      .then(() => onAvisar("Link copiado. É só colar no WhatsApp do cliente ♥"))
+      .catch(() => onAvisar("Não deu para copiar o link"));
+  }
 
   return (
     <li className={`admin-pedido admin-pedido--${pedido.status}`}>
@@ -46,8 +37,8 @@ export default function ItemPedido({ pedido, onAtualizar, onCopiado }) {
             <small>{dataHora.format(new Date(pedido.criado_em))}</small>
           </span>
           <span className="admin-pedido__valor">
-            {moeda(valor)}
-            {pedido.tem_sob_consulta && pedido.total_final === null && <small> + sob consulta</small>}
+            {moeda(valorPedido(pedido))}
+            {faltaValorFinal(pedido) && <small> + sob consulta</small>}
           </span>
           <span className={`admin-status admin-status--${pedido.status}`}>{nomeStatus(pedido.status, pedido.tipo)}</span>
         </summary>
@@ -71,88 +62,76 @@ export default function ItemPedido({ pedido, onAtualizar, onCopiado }) {
           </ul>
 
           <dl className="admin-pedido__dados">
-            <div>
-              <dt>Telefone</dt>
-              <dd>
-                <a href={whatsDoCliente(pedido.cliente_telefone)} target="_blank" rel="noopener">
-                  {pedido.cliente_telefone} (WhatsApp)
-                </a>
-              </dd>
-            </div>
-            <div>
-              <dt>{pedido.tipo === "entrega" ? "Entrega" : "Retirada"}</dt>
-              <dd>{pedido.tipo === "entrega" ? pedido.endereco : "Cliente busca no local"}</dd>
-            </div>
-            {quando && (
-              <div>
-                <dt>Para</dt>
-                <dd>{quando}</dd>
-              </div>
-            )}
-            <div>
-              <dt>Pagamento</dt>
-              <dd>{pedido.pagamento}</dd>
-            </div>
+            <Dado rotulo="Telefone">
+              <a href={linkWhatsAppCliente(pedido.cliente_telefone)} target="_blank" rel="noopener">
+                {pedido.cliente_telefone} (WhatsApp)
+              </a>
+            </Dado>
+            <Dado rotulo={entrega ? "Entrega" : "Retirada"}>{entrega ? pedido.endereco : "Cliente busca no local"}</Dado>
+            <Dado rotulo="Pagamento">{pedido.pagamento}</Dado>
             {pedido.token && (
-              <div>
-                <dt>Acompanhamento</dt>
-                <dd>
-                  <button
-                    className="admin-link"
-                    type="button"
-                    onClick={() =>
-                      navigator.clipboard
-                        .writeText(linkAcompanhar(pedido.token))
-                        .then(() => onCopiado("Link copiado. É só colar no WhatsApp do cliente ♥"))
-                        .catch(() => onCopiado("Não deu para copiar o link"))
-                    }
-                  >
-                    Copiar link para o cliente
-                  </button>
-                </dd>
-              </div>
+              <Dado rotulo="Acompanhamento">
+                <button className="admin-link" type="button" onClick={copiarLinkAcompanhar}>
+                  Copiar link para o cliente
+                </button>
+              </Dado>
             )}
-            {pedido.observacoes && (
-              <div>
-                <dt>Observações</dt>
-                <dd>{pedido.observacoes}</dd>
-              </div>
-            )}
+            {pedido.observacoes && <Dado rotulo="Observações">{pedido.observacoes}</Dado>}
           </dl>
 
           <AvancarStatus pedido={pedido} salvando={salvando} onMudar={(status) => salvar({ status })} />
 
-          <div className="admin-pedido__acoes">
-
-            <form
-              className="admin-pedido__valor-final"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (valorMudou) salvar({ total_final: valorDigitado });
-              }}
-            >
-              <label className="admin-campo admin-campo--linha">
-                <span>Valor final (R$)</span>
-                <input
-                  inputMode="decimal"
-                  placeholder={String(valor.toFixed(2)).replace(".", ",")}
-                  value={valorTexto}
-                  aria-invalid={valorInvalido || undefined}
-                  onChange={(e) => setValorTexto(e.target.value)}
-                />
-              </label>
-              <button className="admin-botao" type="submit" disabled={!valorMudou || salvando}>
-                Salvar valor
-              </button>
-            </form>
-            <p className="admin-dica">
-              {valorInvalido
-                ? "Digite um valor válido, ex.: 45,00"
-                : "Use para itens sob consulta, descontos ou taxa de entrega combinada. Em branco = soma automática."}
-            </p>
-          </div>
+          <ValorFinal pedido={pedido} salvando={salvando} onSalvar={(valor) => salvar({ total_final: valor })} />
         </div>
       </details>
     </li>
+  );
+}
+
+function Dado({ rotulo, children }) {
+  return (
+    <div>
+      <dt>{rotulo}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
+
+/** Campo para a admin ajustar o valor (itens sob consulta, descontos, entrega combinada). */
+function ValorFinal({ pedido, salvando, onSalvar }) {
+  const atual = totalFinal(pedido);
+  const [texto, setTexto] = useState(atual === null ? "" : decimal(atual));
+  const digitado = lerMoeda(texto);
+  const invalido = Number.isNaN(digitado);
+  const mudou = !invalido && digitado !== atual;
+
+  function aoEnviar(e) {
+    e.preventDefault();
+    if (mudou) onSalvar(digitado);
+  }
+
+  return (
+    <div className="admin-pedido__acoes">
+      <form className="admin-pedido__valor-final" onSubmit={aoEnviar}>
+        <label className="admin-campo admin-campo--linha">
+          <span>Valor final (R$)</span>
+          <input
+            inputMode="decimal"
+            placeholder={decimal(valorPedido(pedido))}
+            value={texto}
+            aria-invalid={invalido || undefined}
+            onChange={(e) => setTexto(e.target.value)}
+          />
+        </label>
+        <button className="admin-botao" type="submit" disabled={!mudou || salvando}>
+          Salvar valor
+        </button>
+      </form>
+      <p className="admin-dica">
+        {invalido
+          ? "Digite um valor válido, ex.: 45,00"
+          : "Use para itens sob consulta, descontos ou taxa de entrega combinada. Em branco = soma automática."}
+      </p>
+    </div>
   );
 }

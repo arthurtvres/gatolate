@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabaseConfigurado } from "../lib/supabase";
-import { acompanharPedido, statusFinal } from "../services/pedidosApi";
+import { acompanharPedido } from "../services/pedidosApi";
+import { statusFinal } from "../utils/pedido";
 
 const INTERVALO = 15000; // 15 s
 

@@ -1,7 +1,7 @@
 import { MapPin } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
 import BAIRROS from "../../config/bairros";
-import { normalizarBusca } from "../../utils/validacao";
+import { normalizar } from "../../utils/formatacao";
 
 const NAO_ESTA = "__nao-esta__";
 
@@ -17,8 +17,8 @@ export default function CampoBairro({ value, outro, erro, onEscolher, onOutro, o
   const idLista = useId();
 
   const sugestoes = useMemo(() => {
-    const busca = normalizarBusca(value);
-    const filtrados = busca ? BAIRROS.filter((b) => normalizarBusca(b).includes(busca)) : BAIRROS;
+    const busca = normalizar(value);
+    const filtrados = busca ? BAIRROS.filter((b) => normalizar(b).includes(busca)) : BAIRROS;
     return [...filtrados, NAO_ESTA];
   }, [value]);
 
@@ -61,7 +61,7 @@ export default function CampoBairro({ value, outro, erro, onEscolher, onOutro, o
     setAberto(false);
     // Digitou o nome certinho sem clicar? Aceita, com a grafia da lista
     if (!outro) {
-      const igual = BAIRROS.find((b) => normalizarBusca(b) === normalizarBusca(value));
+      const igual = BAIRROS.find((b) => normalizar(b) === normalizar(value));
       if (igual) {
         if (igual !== value) onEscolher(igual);
         return; // já é válido

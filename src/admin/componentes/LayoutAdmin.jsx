@@ -1,14 +1,15 @@
 import { NavLink } from "react-router-dom";
 import { sair } from "../../services/authApi";
 import { caminhoPublico } from "../../utils/produtos";
+import BotaoAvisos from "./BotaoAvisos";
 
 const LINKS = [
   { para: "/admin", rotulo: "Dashboard", fim: true },
-  { para: "/admin/pedidos", rotulo: "Pedidos" },
+  { para: "/admin/pedidos", rotulo: "Pedidos", mostraNovos: true },
   { para: "/admin/produtos", rotulo: "Produtos" }
 ];
 
-export default function LayoutAdmin({ email, children }) {
+export default function LayoutAdmin({ email, pedidosNovos = 0, children }) {
   return (
     <div className="admin">
       <header className="admin-topo">
@@ -22,11 +23,18 @@ export default function LayoutAdmin({ email, children }) {
             {LINKS.map((link) => (
               <NavLink key={link.para} to={link.para} end={link.fim}>
                 {link.rotulo}
+                {link.mostraNovos && pedidosNovos > 0 && (
+                  <span className="admin-nav__novos">
+                    {pedidosNovos}
+                    <span className="sr-only"> {pedidosNovos === 1 ? "novo" : "novos"}</span>
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>
 
           <div className="admin-topo__conta">
+            <BotaoAvisos />
             <span className="admin-topo__email" title={email}>
               {email}
             </span>

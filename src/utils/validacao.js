@@ -2,15 +2,10 @@
    Cada regra recebe (valor, dados) e devolve "" (ok) ou a mensagem de erro. */
 
 import BAIRROS from "../config/bairros";
-
-/** Texto sem acentos e em minúsculas, para buscas ("São" acha "sao"). */
-export const normalizarBusca = (texto) =>
-  texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
-
-const ehEntrega = (dados) => dados.tipo === "entrega";
+import { ehEntrega } from "./pedido";
 
 const obrigatorioNaEntrega = (mensagem) => (valor, dados) =>
-  !ehEntrega(dados) || valor.trim() !== "" ? "" : mensagem;
+  !ehEntrega(dados.tipo) || valor.trim() !== "" ? "" : mensagem;
 
 export const REGRAS = {
   nome: (v) => (v.trim().length >= 2 ? "" : "Conta pra gente seu nome 😊"),
@@ -18,7 +13,7 @@ export const REGRAS = {
     /^\d{10,11}$/.test(v.replace(/\D/g, "")) ? "" : "Digite o telefone com DDD, ex.: (11) 98888-7777",
   rua: obrigatorioNaEntrega("Qual é a rua para a entrega?"),
   bairro: (v, dados) => {
-    if (!ehEntrega(dados)) return "";
+    if (!ehEntrega(dados.tipo)) return "";
     if (!v.trim()) return "Falta o bairro";
     if (!dados.bairroOutro && !BAIRROS.includes(v)) {
       return "Escolha um bairro da lista (ou toque em “Meu bairro não está na lista”)";

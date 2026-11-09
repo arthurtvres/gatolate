@@ -104,8 +104,8 @@ create table if not exists public.pedidos (
   cliente_telefone text not null,
   tipo             text not null check (tipo in ('entrega', 'retirada')),
   endereco         text not null default '',
-  data_desejada    date,
-  periodo          text not null default '',
+  data_desejada    date,                       -- antigo: o site não agenda mais (combina pelo WhatsApp)
+  periodo          text not null default '',   -- antigo: idem; fica só pelo histórico
   observacoes      text not null default '',
   pagamento        text not null default '',
   taxa_entrega     numeric(10, 2) not null default 0,
@@ -213,10 +213,9 @@ create policy "admin ve itens" on public.pedido_itens
 -- criar_pedido: chamada pela loja ao enviar o pedido para o WhatsApp.
 -- Preços e nomes vêm da tabela produtos, nunca do navegador.
 -- ---------------------------------------------------------------------
--- (o tipo de retorno mudou de text para jsonb, então a versão antiga precisa sair antes)
+-- Versão antiga recebia um p_codigo que não era usado (o código vem da sequência).
 drop function if exists public.criar_pedido(text, jsonb, jsonb, numeric);
 create or replace function public.criar_pedido(
-  p_codigo  text,
   p_cliente jsonb,
   p_itens   jsonb,
   p_taxa    numeric default 0
@@ -247,15 +246,13 @@ begin
 
   insert into public.pedidos (
     codigo, cliente_nome, cliente_telefone, tipo, endereco,
-    data_desejada, periodo, observacoes, pagamento, taxa_entrega
+    observacoes, pagamento, taxa_entrega
   ) values (
     lpad(nextval('public.pedidos_codigo_seq')::text, 4, '0'),
     left(trim(p_cliente ->> 'nome'), 100),
     left(trim(coalesce(p_cliente ->> 'telefone', '')), 30),
     v_tipo,
     case when v_tipo = 'entrega' then left(trim(coalesce(p_cliente ->> 'endereco', '')), 300) else '' end,
-    nullif(p_cliente ->> 'data', '')::date,
-    left(coalesce(p_cliente ->> 'periodo', ''), 30),
     left(coalesce(p_cliente ->> 'observacoes', ''), 500),
     left(coalesce(p_cliente ->> 'pagamento', ''), 40),
     case when v_tipo = 'entrega' then least(greatest(coalesce(p_taxa, 0), 0), 500) else 0 end
@@ -297,6 +294,25 @@ begin
   return (select jsonb_build_object('codigo', codigo, 'token', token) from public.pedidos where id = v_pedido_id);
 end;
 $$;
+grant execute on function public.criar_pedido(jsonb, jsonb, numeric) to anon, authenticated;
+
+-- TRANSIÇÃO: o site antigo ainda manda p_codigo (ignorado). Esta versão só repassa
+-- para a nova, assim o banco e o site podem ser atualizados em qualquer ordem.
+-- Pode apagar depois que o site novo estiver publicado:
+--   drop function if exists public.criar_pedido(text, jsonb, jsonb, numeric);
+create or replace function public.criar_pedido(
+  p_codigo  text,
+  p_cliente jsonb,
+  p_itens   jsonb,
+  p_taxa    numeric default 0
+)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select public.criar_pedido(p_cliente => p_cliente, p_itens => p_itens, p_taxa => p_taxa);
+$$;
 grant execute on function public.criar_pedido(text, jsonb, jsonb, numeric) to anon, authenticated;
 
 -- ---------------------------------------------------------------------
@@ -333,6 +349,21 @@ as $$
   where p.token = p_token;
 $$;
 grant execute on function public.acompanhar_pedido(uuid) to anon, authenticated;
+
+-- ---------------------------------------------------------------------
+-- REALTIME: o painel recebe na hora cada pedido novo (som + notificação).
+-- O RLS continua valendo: só quem está em "admins" recebe os eventos.
+-- ---------------------------------------------------------------------
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+     where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'pedidos'
+  ) then
+    alter publication supabase_realtime add table public.pedidos;
+  end if;
+end;
+$$;
 
 -- ---------------------------------------------------------------------
 -- ACESSO PELA API

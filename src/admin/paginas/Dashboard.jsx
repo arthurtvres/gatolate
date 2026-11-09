@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { listarPedidos } from "../../services/pedidosApi";
 import { moeda, plural } from "../../utils/formatacao";
+import ErroCarregamento from "../componentes/ErroCarregamento";
 import FiltroPeriodo from "../componentes/FiltroPeriodo";
 import GraficoColunas from "../componentes/GraficoColunas";
 import RankingBarras from "../componentes/RankingBarras";
 import StatTile from "../componentes/StatTile";
-import { useConsulta } from "../hooks/useConsulta";
-import { calcularMetricas, inicioDoPeriodo } from "../utils/metricas";
+import { usePedidosDoPeriodo } from "../hooks/usePedidosDoPeriodo";
+import { calcularMetricas } from "../utils/metricas";
 
 const moedaCurta = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -21,10 +21,7 @@ const formatarEixo = (valor) =>
 
 export default function Dashboard() {
   const [periodo, setPeriodo] = useState("30d");
-  const { dados: pedidos, carregando, erro, recarregar } = useConsulta(
-    () => listarPedidos(inicioDoPeriodo(periodo)),
-    `dashboard-${periodo}`
-  );
+  const { dados: pedidos, carregando, erro, recarregar } = usePedidosDoPeriodo(periodo);
   const m = useMemo(() => (pedidos ? calcularMetricas(pedidos, periodo) : null), [pedidos, periodo]);
 
   return (
@@ -34,14 +31,7 @@ export default function Dashboard() {
         <FiltroPeriodo valor={periodo} onMudar={setPeriodo} />
       </div>
 
-      {erro && (
-        <p className="admin-erro" role="alert">
-          {erro}{" "}
-          <button className="admin-botao" type="button" onClick={recarregar}>
-            Tentar de novo
-          </button>
-        </p>
-      )}
+      <ErroCarregamento erro={erro} onTentarDeNovo={recarregar} />
 
       {!m ? (
         <p className="admin-carregando">Carregando números...</p>

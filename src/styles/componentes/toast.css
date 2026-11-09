@@ -3,9 +3,10 @@
    ===================================================================== */
 .toast {
   position: fixed; left: 50%; bottom: 90px; z-index: 70;
-  padding: 12px 22px; border-radius: 999px;
+  width: max-content; max-width: calc(100vw - 32px);
+  padding: 12px 22px; border-radius: 22px;
   background: var(--marrom); color: var(--creme);
-  font-weight: 700; white-space: nowrap;
+  font-weight: 700; text-align: center; text-wrap: balance;
   box-shadow: var(--sombra-forte);
   opacity: 0; pointer-events: none;
   transform: translate(-50%, 30px);

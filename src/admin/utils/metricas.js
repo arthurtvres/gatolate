@@ -1,5 +1,5 @@
 /* Cálculos do dashboard (funções puras: recebem pedidos, devolvem números). */
-import { STATUS_VENDA, valorPedido } from "../../services/pedidosApi";
+import { faltaValorFinal, STATUS_VENDA, valorPedido } from "../../utils/pedido";
 
 export const PERIODOS = [
   { id: "hoje", rotulo: "Hoje", dias: 1 },
@@ -97,10 +97,9 @@ export function calcularMetricas(todosPedidos, idPeriodo, agora = new Date()) {
     vendas: vendas.length,
     ticketMedio: vendas.length ? faturamento / vendas.length : 0,
     pendentes: contagem("pendente"),
-    cancelados: contagem("cancelado"),
     totalPedidos: pedidos.length,
     // Pedidos confirmados/entregues que ainda têm item sem valor definido
-    semValorDefinido: vendas.filter((p) => p.tem_sob_consulta && p.total_final === null).length,
+    semValorDefinido: vendas.filter(faltaValorFinal).length,
     serie: montarSerie(vendas, inicio, agora),
     ranking: montarRanking(vendas)
   };

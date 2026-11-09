@@ -1,12 +1,27 @@
-/* Formatação de dinheiro, textos, telefone e datas. */
+/* Formatação de dinheiro, textos, telefone e endereço. */
 
 const intlMoeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 /** 8 → "R$ 8,00" (troca o espaço especial do Intl por um espaço comum). */
 export const moeda = (valor) => intlMoeda.format(valor).replace(/\s/g, " ");
 
-/** Remove acentos e deixa minúsculo (a busca acha "recheado" e "Recheados"). */
-export const normalizar = (texto) => texto.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+/** 45.5 → "45,50" (valor para preencher um campo de texto). */
+export const decimal = (valor) => Number(valor).toFixed(2).replace(".", ",");
+
+/**
+ * Texto digitado em reais → número. "1.234,50" ou "1234.5" → 1234.5.
+ * null se vazio; NaN se não for um valor válido.
+ */
+export function lerMoeda(texto) {
+  const limpo = texto.trim().replace(/[^\d,.-]/g, "");
+  if (!limpo) return null;
+  const numero = Number(limpo.includes(",") ? limpo.replace(/\./g, "").replace(",", ".") : limpo);
+  return Number.isFinite(numero) && numero >= 0 ? numero : NaN;
+}
+
+/** Sem acentos, sem espaços nas pontas e minúsculo, para buscas ("São" acha "sao"). */
+export const normalizar = (texto) =>
+  texto.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 
 /** plural(1, "item", "itens") → "1 item"; plural(3, ...) → "3 itens". */
 export const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
@@ -21,15 +36,7 @@ export function mascararTelefone(valor) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
-/** "2026-11-02" → "02/11" */
-export function dataCurta(iso) {
-  const [, mes, dia] = iso.split("-");
-  return `${dia}/${mes}`;
-}
-
-/** Data de hoje no formato do campo de data ("2026-10-31"), no fuso local. */
-export function hojeISO() {
-  const hoje = new Date();
-  hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
-  return hoje.toISOString().slice(0, 10);
+/** "Rua X, 123 – Bairro Y (apto 4)" */
+export function formatarEndereco({ rua, numero, bairro, complemento }) {
+  return `${rua}, ${numero} – ${bairro}${complemento ? ` (${complemento})` : ""}`;
 }

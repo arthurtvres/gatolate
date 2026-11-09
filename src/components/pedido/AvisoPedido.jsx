@@ -2,7 +2,7 @@ import { ChevronRight, Receipt } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAcompanhamento } from "../../hooks/useAcompanhamento";
-import { nomeStatusCliente, statusFinal } from "../../services/pedidosApi";
+import { nomeStatusCliente, statusFinal } from "../../utils/pedido";
 import { caminhoAcompanhar, esquecerPedido, ultimoPedido } from "../../utils/meusPedidos";
 
 const DOIS_DIAS = 2 * 24 * 60 * 60 * 1000;
