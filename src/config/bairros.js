@@ -1,4 +1,4 @@
-/* Bairros de Imperatriz (MA) atendidos na entrega, em ordem alfabética. */
+/* Bairros padrão (modo demonstração e semente do banco). Com o Supabase, a lista vem da tabela "bairros" e a dona edita no painel. */
 const BAIRROS = [
   "Aeroporto",
   "Alto Bonito do Triângulo",

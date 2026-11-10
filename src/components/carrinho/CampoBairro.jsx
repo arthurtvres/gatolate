@@ -1,6 +1,5 @@
 import { MapPin } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
-import BAIRROS from "../../config/bairros";
 import { normalizar } from "../../utils/formatacao";
 
 const NAO_ESTA = "__nao-esta__";
@@ -8,8 +7,9 @@ const NAO_ESTA = "__nao-esta__";
 /**
  * Bairro com busca: a pessoa digita e escolhe na lista.
  * Se o bairro não estiver na lista, "Meu bairro não está na lista" libera digitar livre (outro = true).
+ * opcoes: nomes dos bairros atendidos.
  */
-export default function CampoBairro({ value, outro, erro, onEscolher, onOutro, onBlur }) {
+export default function CampoBairro({ opcoes, value, outro, erro, onEscolher, onOutro, onBlur }) {
   const [aberto, setAberto] = useState(false);
   const [ativo, setAtivo] = useState(0);
   const listaRef = useRef(null);
@@ -18,9 +18,9 @@ export default function CampoBairro({ value, outro, erro, onEscolher, onOutro, o
 
   const sugestoes = useMemo(() => {
     const busca = normalizar(value);
-    const filtrados = busca ? BAIRROS.filter((b) => normalizar(b).includes(busca)) : BAIRROS;
+    const filtrados = busca ? opcoes.filter((b) => normalizar(b).includes(busca)) : opcoes;
     return [...filtrados, NAO_ESTA];
-  }, [value]);
+  }, [value, opcoes]);
 
   const mostrarLista = aberto && !outro;
 
@@ -61,7 +61,7 @@ export default function CampoBairro({ value, outro, erro, onEscolher, onOutro, o
     setAberto(false);
     // Digitou o nome certinho sem clicar? Aceita, com a grafia da lista
     if (!outro) {
-      const igual = BAIRROS.find((b) => normalizar(b) === normalizar(value));
+      const igual = opcoes.find((b) => normalizar(b) === normalizar(value));
       if (igual) {
         if (igual !== value) onEscolher(igual);
         return; // já é válido

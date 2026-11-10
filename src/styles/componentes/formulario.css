@@ -124,3 +124,18 @@ fieldset.campo { margin: 0; padding: 0; border: 0; }
 .resumo-itens__contas { display: grid; gap: 2px; margin: 0; padding-top: 8px; border-top: 1px dashed var(--rosa-borda); font-size: .88rem; color: var(--texto-suave); }
 .resumo-itens__contas div { display: flex; justify-content: space-between; }
 .resumo-itens__contas dd { margin: 0; }
+
+/* Loja pausada pelas configurações: o botão de enviar fica desligado */
+.aviso-pausa {
+  margin: 0 0 10px; padding: 10px 12px; border-radius: 12px;
+  background: var(--rosa-claro); color: var(--texto); font-weight: 700; font-size: .88rem; text-align: center;
+}
+.rodape-pedido .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* "Seus dados estão seguros" embaixo do botão de enviar */
+.nota-privacidade {
+  display: flex; align-items: flex-start; justify-content: center; gap: 6px;
+  margin: 10px 0 0; font-size: .78rem; line-height: 1.4; color: var(--texto-suave); text-align: center;
+}
+.nota-privacidade .lucide { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; color: var(--verde-whats); }
+.nota-privacidade a { color: var(--rosa-botao); font-weight: 700; }

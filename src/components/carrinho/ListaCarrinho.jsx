@@ -1,13 +1,16 @@
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useCarrinho } from "../../hooks/useCarrinho";
+import { useConfigLoja } from "../../hooks/useConfigLoja";
 import { textoNota, textoTotal } from "../../utils/carrinho";
+import { temTaxas } from "../../utils/configLoja";
 import Icone from "../ui/Icone";
 import ItemCarrinho from "./ItemCarrinho";
 
 /** Tela 1 da gaveta: itens + total, ou a mensagem de carrinho vazio. */
 export default function ListaCarrinho({ onFinalizar, onFechar, onItemRemovido, onLimpar }) {
   const { resumo } = useCarrinho();
+  const { bairros } = useConfigLoja();
   const [confirmando, setConfirmando] = useState(false);
 
   if (resumo.quantidade === 0) {
@@ -62,7 +65,7 @@ export default function ListaCarrinho({ onFinalizar, onFechar, onItemRemovido, o
           <span>Total</span>
           <strong>{textoTotal(resumo)}</strong>
         </div>
-        <p className="nota">{textoNota(resumo)}</p>
+        <p className="nota">{textoNota(resumo, undefined, { taxasPorBairro: temTaxas(bairros) })}</p>
         <button className="btn btn--cheio" type="button" onClick={onFinalizar}>
           Finalizar pedido
         </button>

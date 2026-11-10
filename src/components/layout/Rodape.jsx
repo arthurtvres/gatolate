@@ -1,9 +1,11 @@
 import CONFIG from "../../config/loja";
+import { useConfigLoja } from "../../hooks/useConfigLoja";
 import { iconePagamento } from "../../utils/pagamentos";
 import Icone from "../ui/Icone";
 
 /** Rodapé: benefícios e, por último, as formas de pagamento. */
 export default function Rodape() {
+  const { beneficios, pagamentos } = useConfigLoja();
   return (
     <footer className="rodape">
       <div className="onda onda--cima" aria-hidden="true" />
@@ -14,7 +16,7 @@ export default function Rodape() {
 
       <div className="container">
         <ul className="faixa-beneficios" aria-label="Nossos diferenciais">
-          {CONFIG.beneficios.map((b) => (
+          {beneficios.map((b) => (
             <li key={b.titulo}>
               <Icone nome={b.icone} />
               <span>{b.titulo}</span>
@@ -27,7 +29,7 @@ export default function Rodape() {
             Formas de pagamento
           </h2>
           <ul className="pagamentos__lista">
-            {CONFIG.pagamentos.map((p) => (
+            {pagamentos.map((p) => (
               <li key={p.nome}>
                 <Icone nome={iconePagamento(p)} />
                 {p.nome}

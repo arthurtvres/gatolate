@@ -1,0 +1,15 @@
+/* =====================================================================
+   secoes/privacidade.css — página /privacidade
+   Carregado só junto com a página (o topo reaproveita .acompanhar__topo).
+   ===================================================================== */
+.privacidade { display: grid; gap: 18px; max-width: 640px; margin-inline: auto; padding: 28px 18px 48px; }
+.privacidade h1 { margin: 0; font-size: 2.2rem; line-height: 1.1; }
+.privacidade h2 { margin: 0 0 4px; font-size: 1.05rem; font-weight: 800; }
+.privacidade p { margin: 0 0 8px; line-height: 1.6; }
+.privacidade a { color: var(--rosa-botao); font-weight: 700; }
+.privacidade__resumo {
+  padding: 14px 16px; border-radius: var(--raio);
+  background: var(--branco-quente); border: 1.5px solid var(--rosa-borda); box-shadow: var(--sombra);
+  font-weight: 700;
+}
+.privacidade__data { font-size: .85rem; color: var(--texto-suave); }

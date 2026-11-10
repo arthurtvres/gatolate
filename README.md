@@ -19,6 +19,8 @@ O cliente monta o carrinho, preenche os dados de entrega e é levado ao WhatsApp
 - Gestão de pedidos: status (pendente → confirmado → entregue/cancelado), ajuste de valor final e busca por código, nome ou telefone
 - Aviso de pedido novo em tempo real: som, notificação do navegador, contador no menu e na aba, listas atualizadas sozinhas
 - Gestão de produtos: criar, editar, ocultar e excluir, com upload de foto
+- Bairros de entrega: adicionar, tirar da lista e definir a taxa de cada um (vazia = a combinar)
+- Configurações da loja: textos da página inicial, benefícios do rodapé, formas de pagamento, aviso no topo e pausa de pedidos
 
 ## Stack
 
@@ -29,13 +31,14 @@ O cliente monta o carrinho, preenche os dados de entrega e é levado ao WhatsApp
 
 ## Destaques técnicos
 
-- **Preço calculado no servidor:** o pedido é criado por uma função Postgres (`security definer`) que busca os preços na tabela de produtos. Nada que vem do navegador define valores.
+- **Preço e taxa calculados no servidor:** o pedido é criado por uma função Postgres (`security definer`) que busca os preços na tabela de produtos e a taxa de entrega na tabela de bairros. Nada que vem do navegador define valores. A pausa de pedidos também é conferida ali.
 - **Proteção contra pedidos falsos:** `criar_pedido` limita pedidos por IP (5 a cada 15 min), por telefone (3 a cada 15 min) e da loja inteira (40 por hora), e confere no servidor as mesmas regras do formulário.
 - **Row Level Security em todas as tabelas:** visitantes só leem produtos ativos e só criam pedidos pela função. Leitura de pedidos e edição de produtos ficam restritas à tabela `admins`.
 - **Performance:** o painel é carregado sob demanda (`React.lazy`) e o SDK do Supabase por import dinâmico. O cliente da loja baixa ~103 KB gzip, e o cardápio aparece na hora a partir de cache local (*stale-while-revalidate*).
 - **Registro resiliente:** o pedido é enviado com `fetch keepalive`, então termina mesmo quando o celular troca a página pelo WhatsApp.
 - **Acessibilidade:** HTML semântico, foco gerenciado em modal e gaveta (`<dialog>` nativo e foco preso), navegação por teclado nos gráficos, tabela alternativa para cada gráfico e contraste AA.
-- **Modo demonstração:** sem as variáveis do Supabase, a loja roda com o cardápio de `src/config/loja.js`.
+- **Modo demonstração:** sem as variáveis do Supabase, a loja roda com o cardápio, os textos e os bairros de `src/config/`.
+- **Privacidade sem pop-up:** o site não usa cookies de rastreamento; o formulário mostra uma linha "Seus dados estão seguros" com link para `/privacidade`.
 
 ## Estrutura
 
@@ -47,7 +50,7 @@ src/
 ├── context/ · hooks/     # estado global: produtos, carrinho, toasts
 ├── services/             # acesso ao Supabase
 ├── utils/                # lógica pura: cálculos, mensagem, validação
-├── config/loja.js        # dados da loja: WhatsApp, textos, pagamentos
+├── config/               # WhatsApp e Instagram (só no código) + textos, pagamentos e bairros padrão
 └── styles/
 supabase/schema.sql       # tabelas, RLS, função de pedido, storage
 ```

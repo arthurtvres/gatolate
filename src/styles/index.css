@@ -16,6 +16,7 @@
 
 @import "./layout/cabecalho.css";
 @import "./layout/rodape.css";
+@import "./layout/aviso-loja.css";
 
 @import "./secoes/produtos.css";
 @import "./secoes/sobre.css";

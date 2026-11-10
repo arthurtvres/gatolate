@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import CarrinhoFlutuante from "../components/carrinho/CarrinhoFlutuante";
 import GavetaCarrinho from "../components/carrinho/GavetaCarrinho";
 import Cabecalho from "../components/layout/Cabecalho";
+import AvisoLoja from "../components/layout/AvisoLoja";
 import Rodape from "../components/layout/Rodape";
 import AvisoPedido from "../components/pedido/AvisoPedido";
 import SecaoProdutos from "../components/produtos/SecaoProdutos";
@@ -43,6 +44,7 @@ export default function Loja() {
       <Cabecalho busca={busca} onBuscar={setBusca} onAbrirCarrinho={abrirCarrinho} versaoPedido={versaoPedido} />
 
       <main id="conteudo">
+        <AvisoLoja />
         <AvisoPedido key={versaoPedido} />
         <SecaoProdutos busca={busca} />
         <Divisor />

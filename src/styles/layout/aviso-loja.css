@@ -1,0 +1,11 @@
+/* =====================================================================
+   layout/aviso-loja.css — faixa de aviso no topo da loja (texto vem das configurações)
+   ===================================================================== */
+.aviso-loja { padding-top: 16px; }
+.aviso-loja__caixa {
+  display: flex; align-items: center; gap: 12px;
+  max-width: 560px; margin: 0 auto; padding: 10px 16px;
+  border-radius: 16px; background: var(--rosa); color: var(--texto);
+  font-weight: 700; line-height: 1.35;
+}
+.aviso-loja__gato { width: 30px; height: 30px; flex-shrink: 0; color: var(--marrom); }

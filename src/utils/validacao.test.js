@@ -39,8 +39,19 @@ describe("telefone", () => {
 });
 
 describe("bairro", () => {
+  const bairros = ["Centro", "Vila Nova"];
+
   it("precisa ser da lista, a não ser que a pessoa escolha digitar livre", () => {
-    expect(validarCampo("bairro", { ...entregaValida, bairro: "Bairro Inventado" })).not.toBe("");
-    expect(validarCampo("bairro", { ...entregaValida, bairro: "Bairro Inventado", bairroOutro: true })).toBe("");
+    expect(validarCampo("bairro", { ...entregaValida, bairro: "Bairro Inventado" }, bairros)).not.toBe("");
+    expect(validarCampo("bairro", { ...entregaValida, bairro: "Bairro Inventado", bairroOutro: true }, bairros)).toBe("");
+    expect(validarCampo("bairro", entregaValida, bairros)).toBe("");
+  });
+
+  it("sem lista de bairros (todos desativados), aceita o que for digitado", () => {
+    expect(validarCampo("bairro", { ...entregaValida, bairro: "Qualquer Um" }, [])).toBe("");
+  });
+
+  it("validarFormulario repassa a lista para a regra do bairro", () => {
+    expect(validarFormulario({ ...entregaValida, bairro: "Fora" }, bairros)).toHaveProperty("bairro");
   });
 });

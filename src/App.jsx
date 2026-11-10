@@ -2,14 +2,16 @@ import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import SpriteIcones from "./components/ui/SpriteIcones";
 import { CarrinhoProvider } from "./context/CarrinhoProvider";
+import { ConfigLojaProvider } from "./context/ConfigLojaProvider";
 import { ProdutosProvider } from "./context/ProdutosProvider";
 import Loja from "./paginas/Loja";
 
 // O painel só é baixado por quem abre /admin (clientes da loja não carregam esse código)
 const PainelAdmin = lazy(() => import("./admin/PainelAdmin"));
 const AcompanharPedido = lazy(() => import("./paginas/AcompanharPedido"));
+const Privacidade = lazy(() => import("./paginas/Privacidade"));
 
-/** Rotas: "/" = loja · "/pedido/:token" = cliente acompanha o pedido · "/admin" = painel da dona. */
+/** Rotas: "/" = loja · "/pedido/:token" = cliente acompanha o pedido · "/privacidade" · "/admin" = painel da dona. */
 export default function App() {
   return (
     <>
@@ -32,13 +34,23 @@ export default function App() {
           }
         />
         <Route
+          path="/privacidade"
+          element={
+            <Suspense fallback={null}>
+              <Privacidade />
+            </Suspense>
+          }
+        />
+        <Route
           path="*"
           element={
-            <ProdutosProvider>
-              <CarrinhoProvider>
-                <Loja />
-              </CarrinhoProvider>
-            </ProdutosProvider>
+            <ConfigLojaProvider>
+              <ProdutosProvider>
+                <CarrinhoProvider>
+                  <Loja />
+                </CarrinhoProvider>
+              </ProdutosProvider>
+            </ConfigLojaProvider>
           }
         />
       </Routes>

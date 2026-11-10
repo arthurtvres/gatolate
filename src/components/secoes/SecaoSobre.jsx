@@ -1,9 +1,9 @@
-import CONFIG from "../../config/loja";
+import { useConfigLoja } from "../../hooks/useConfigLoja";
 import Icone from "../ui/Icone";
 
 /** "Nosso propósito" + "Sobre nós". */
 export default function SecaoSobre() {
-  const { textos } = CONFIG;
+  const { textos } = useConfigLoja();
 
   return (
     <section className="sobre container" id="sobre" aria-labelledby="titulo-sobre">

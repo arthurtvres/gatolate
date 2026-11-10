@@ -1,6 +1,6 @@
 import { PawPrint } from "lucide-react";
 import { useMemo, useState } from "react";
-import CONFIG from "../../config/loja";
+import { useConfigLoja } from "../../hooks/useConfigLoja";
 import { useProdutos } from "../../hooks/useProdutos";
 import { normalizar } from "../../utils/formatacao";
 import Icone from "../ui/Icone";
@@ -12,6 +12,7 @@ import ModalProduto from "./ModalProduto";
 /** Primeira seção do site: é o que mais se acessa no celular. */
 export default function SecaoProdutos({ busca }) {
   const { produtos: todos, carregando, erro, recarregar } = useProdutos();
+  const { textos } = useConfigLoja();
   const [produtoAberto, setProdutoAberto] = useState(null);
 
   // Filtra pelo nome e pela descrição, ignorando acentos e maiúsculas
@@ -34,7 +35,7 @@ export default function SecaoProdutos({ busca }) {
         </TituloDecorado>
         <p className="manuscrito">
           <Icone nome="coracao" />
-          <span>{CONFIG.textos.subtituloProdutos}</span>
+          <span>{textos.subtituloProdutos}</span>
           <Icone nome="coracao" />
         </p>
       </header>

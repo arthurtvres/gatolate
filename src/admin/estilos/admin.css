@@ -316,3 +316,48 @@
   padding: 0; border: 0; background: none; cursor: pointer;
   font: inherit; font-weight: 700; color: var(--rosa-botao); text-decoration: underline;
 }
+
+/* ---------- Configurações e bairros ---------- */
+.admin-config { display: grid; gap: 16px; max-width: 760px; }
+.admin-secao { display: grid; gap: 12px; padding: 18px; border-radius: 16px; background: #fff; box-shadow: var(--sombra); }
+.admin-secao h2 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+.admin-check--destaque { align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--rosa-claro); }
+.admin-check--destaque span { display: grid; gap: 2px; }
+.admin-check--destaque small { color: var(--texto-suave); font-size: .82rem; }
+.admin-check--destaque input { margin-top: 2px; }
+
+.admin-lista-edicao { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.admin-lista-edicao li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.admin-lista-edicao li > .admin-campo:first-child:not(.admin-lista-edicao__texto) { width: 160px; }
+.admin-lista-edicao__texto { flex: 1; min-width: 180px; }
+
+/* Barra de salvar grudada embaixo da tela */
+.admin-config__rodape {
+  position: sticky; bottom: 0; z-index: 5;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px;
+  padding: 12px 18px; border-radius: 16px 16px 0 0;
+  background: var(--branco-quente); box-shadow: 0 -6px 18px rgba(74, 35, 24, .1);
+}
+.admin-config__rodape .admin-dica { margin-right: auto; }
+.admin-config__rodape .admin-erro { width: 100%; }
+
+.admin-bairros__novo { max-width: 760px; margin-bottom: 18px; }
+.admin-bairros__novo-campos { display: grid; gap: 10px; align-items: end; }
+.admin-bairros__barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.admin-bairros { display: grid; gap: 8px; max-width: 760px; margin: 12px 0 0; padding: 0; list-style: none; }
+.admin-bairro {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center;
+  padding: 10px 14px; border-radius: 12px; background: #fff; box-shadow: var(--sombra);
+}
+.admin-bairro--fora { opacity: .65; }
+.admin-bairro__nome { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.admin-bairro__taxa { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.admin-bairro__taxa input { width: 110px; }
+.admin-bairro__acoes { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
+.admin-bairro__erro { grid-column: 1 / -1; margin: 0; }
+
+@media (min-width: 640px) {
+  .admin-bairros__novo-campos { grid-template-columns: 1fr 140px auto; }
+  .admin-bairro { grid-template-columns: 1fr auto auto; }
+  .admin-bairro__acoes { grid-column: auto; }
+}

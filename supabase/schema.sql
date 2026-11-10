@@ -89,6 +89,72 @@ create policy "admin exclui produtos" on public.produtos
   for delete to authenticated using (public.eh_admin());
 
 -- ---------------------------------------------------------------------
+-- CONFIGURAÇÕES DA LOJA (editadas pela dona em /admin/configuracoes)
+-- Uma linha só (id = 1). WhatsApp e Instagram NÃO ficam aqui: continuam
+-- no código (src/config/loja.js), para ninguém desviar os pedidos se a
+-- conta do painel for invadida.
+-- ---------------------------------------------------------------------
+create table if not exists public.configuracoes (
+  id               smallint primary key default 1 check (id = 1),
+  -- { subtituloProdutos, momentoLinha1, momentoLinha2, proposito, sobre: [parágrafos], saudacaoContato }
+  textos           jsonb not null default '{}'
+                   check (jsonb_typeof(textos) = 'object' and octet_length(textos::text) <= 8000),
+  -- [{ icone, titulo }]
+  beneficios       jsonb not null default '[]'
+                   check (jsonb_typeof(beneficios) = 'array' and jsonb_array_length(beneficios) <= 8
+                          and octet_length(beneficios::text) <= 2000),
+  -- [{ nome, naEntrega }]
+  pagamentos       jsonb not null default '[]'
+                   check (jsonb_typeof(pagamentos) = 'array' and jsonb_array_length(pagamentos) between 1 and 8
+                          and octet_length(pagamentos::text) <= 2000),
+  aviso            text not null default '' check (length(aviso) <= 200), -- faixa no topo da loja ('' = sem aviso)
+  pedidos_pausados boolean not null default false,                       -- true = criar_pedido recusa
+  atualizado_em    timestamptz not null default now()
+);
+alter table public.configuracoes enable row level security;
+
+drop trigger if exists configuracoes_atualizado_em on public.configuracoes;
+create trigger configuracoes_atualizado_em before update on public.configuracoes
+  for each row execute function public.tocar_atualizado_em();
+
+drop policy if exists "todos veem as configuracoes" on public.configuracoes;
+create policy "todos veem as configuracoes" on public.configuracoes
+  for select to anon, authenticated using (true);
+
+drop policy if exists "admin edita as configuracoes" on public.configuracoes;
+create policy "admin edita as configuracoes" on public.configuracoes
+  for update to authenticated using (public.eh_admin()) with check (public.eh_admin());
+
+-- ---------------------------------------------------------------------
+-- BAIRROS ATENDIDOS NA ENTREGA
+-- taxa null = "a combinar pelo WhatsApp". A taxa do pedido é calculada
+-- pelo criar_pedido a partir desta tabela, nunca vem do navegador.
+-- ---------------------------------------------------------------------
+create table if not exists public.bairros (
+  nome      text primary key check (length(trim(nome)) between 2 and 80 and nome = trim(nome)),
+  taxa      numeric(10, 2) check (taxa is null or taxa between 0 and 500),
+  ativo     boolean not null default true,
+  criado_em timestamptz not null default now()
+);
+alter table public.bairros enable row level security;
+
+drop policy if exists "todos veem bairros ativos" on public.bairros;
+create policy "todos veem bairros ativos" on public.bairros
+  for select to anon, authenticated using (ativo or public.eh_admin());
+
+drop policy if exists "admin cria bairros" on public.bairros;
+create policy "admin cria bairros" on public.bairros
+  for insert to authenticated with check (public.eh_admin());
+
+drop policy if exists "admin edita bairros" on public.bairros;
+create policy "admin edita bairros" on public.bairros
+  for update to authenticated using (public.eh_admin()) with check (public.eh_admin());
+
+drop policy if exists "admin exclui bairros" on public.bairros;
+create policy "admin exclui bairros" on public.bairros
+  for delete to authenticated using (public.eh_admin());
+
+-- ---------------------------------------------------------------------
 -- PEDIDOS
 -- ---------------------------------------------------------------------
 create sequence if not exists public.pedidos_codigo_seq;
@@ -324,7 +390,9 @@ revoke all on function public.validar_cliente(jsonb) from public, anon, authenti
 
 -- ---------------------------------------------------------------------
 -- criar_pedido: chamada pela loja ao enviar o pedido para o WhatsApp.
--- Preços e nomes vêm da tabela produtos, nunca do navegador.
+-- Preços e nomes vêm da tabela produtos e a taxa de entrega vem da tabela
+-- bairros: nada que o navegador manda define valores.
+-- p_taxa ficou só para o site antigo continuar funcionando; é ignorado.
 -- ---------------------------------------------------------------------
 -- Versão antiga recebia um p_codigo que não era usado (o código vem da sequência).
 drop function if exists public.criar_pedido(text, jsonb, jsonb, numeric);
@@ -346,12 +414,25 @@ declare
   v_subtotal  numeric := 0;
   v_sob       boolean := false;
   v_tipo      text := coalesce(p_cliente ->> 'tipo', '');
+  v_taxa      numeric;
 begin
   -- "is distinct from" também recusa null (com "<>", null passaria direto)
   if jsonb_typeof(p_itens) is distinct from 'array' or jsonb_array_length(p_itens) not between 1 and 50 then
     raise exception 'Itens inválidos';
   end if;
   perform public.validar_cliente(p_cliente);
+
+  if coalesce((select pedidos_pausados from public.configuracoes where id = 1), false) then
+    raise exception 'A loja não está recebendo pedidos pelo site agora. Fale com a gente pelo WhatsApp.';
+  end if;
+
+  -- Taxa do bairro escolhido. Bairro fora da lista ou sem taxa = a combinar (0).
+  if v_tipo = 'entrega' then
+    select taxa into v_taxa
+      from public.bairros
+     where nome = trim(coalesce(p_cliente ->> 'bairro', '')) and ativo;
+  end if;
+
   -- Depois das validações: dado inválido não gasta o limite.
   -- Se algo falhar mais adiante (ex.: produto indisponível), o registro também é desfeito.
   perform public.conferir_limite_pedidos(regexp_replace(p_cliente ->> 'telefone', '\D', '', 'g'));
@@ -367,7 +448,7 @@ begin
     case when v_tipo = 'entrega' then left(trim(coalesce(p_cliente ->> 'endereco', '')), 300) else '' end,
     left(coalesce(p_cliente ->> 'observacoes', ''), 500),
     left(coalesce(p_cliente ->> 'pagamento', ''), 40),
-    case when v_tipo = 'entrega' then least(greatest(coalesce(p_taxa, 0), 0), 500) else 0 end
+    coalesce(v_taxa, 0)
   )
   returning id into v_pedido_id;
 
@@ -489,6 +570,10 @@ grant insert, update, delete on public.produtos to authenticated;
 grant select, update, delete on public.pedidos to authenticated;
 grant select on public.pedido_itens to authenticated;
 grant select on public.admins to authenticated;
+grant select on public.configuracoes to anon, authenticated;
+grant update on public.configuracoes to authenticated;
+grant select on public.bairros to anon, authenticated;
+grant insert, update, delete on public.bairros to authenticated;
 
 -- ---------------------------------------------------------------------
 -- FOTOS DOS PRODUTOS (Storage)
@@ -517,6 +602,151 @@ insert into public.produtos (id, nome, descricao, preco, unidade, imagem, catego
   ('especial',    'Especiais',   'Cobertura de chocolate branco e Oreo', 12.00, 'unidade', 'produtos/especial.jpg',    'brownies', '',                    3),
   ('caixa',       'Pedidos',     'Caixas personalizadas',                null,  '',        'produtos/caixa.jpg',       'caixas',   'Caixa personalizada', 4)
 on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------------
+-- CONFIGURAÇÕES INICIAIS (só entram na primeira vez; depois a dona edita no painel)
+-- ---------------------------------------------------------------------
+insert into public.configuracoes (id, textos, beneficios, pagamentos) values (
+  1,
+  $j${"subtituloProdutos":"Feitos com muito amor e ingredientes selecionados","momentoLinha1":"É mais que um brownie...","momentoLinha2":"É um momento especial!","proposito":"Transformar momentos simples em doces memórias!","sobre":["O Gatolate nasceu da mistura de duas coisas que amamos: gatinhos e doces! 🍫🐈 Nosso nome carrega esse carinho pelos nossos companheiros de quatro patas e a vontade de compartilhar momentos doces e especiais através dos nossos brownies. Cada detalhe é pensado com muito carinho, desde a preparação até a entrega, para que cada pedacinho leve um pouquinho de amor até vocês."],"saudacaoContato":"Olá, Gatolate! Vim pelo site e queria tirar uma dúvida 🐱"}$j$::jsonb,
+  $j$[{"icone":"qualidade","titulo":"Qualidade em cada mordida"},{"icone":"entrega","titulo":"Entrega rápida e segura"},{"icone":"protegida","titulo":"Compra protegida"},{"icone":"pagamento","titulo":"Diversas formas de pagamento"}]$j$::jsonb,
+  $j$[{"nome":"Pix","naEntrega":false},{"nome":"Dinheiro","naEntrega":false},{"nome":"Cartão","naEntrega":false}]$j$::jsonb
+)
+on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------------
+-- BAIRROS INICIAIS DE IMPERATRIZ (MA), sem taxa = a combinar
+-- ---------------------------------------------------------------------
+insert into public.bairros (nome) values
+  ('Aeroporto'),
+  ('Alto Bonito do Triângulo'),
+  ('Alto da Boa Vista'),
+  ('Asa Norte'),
+  ('Bacuri'),
+  ('Beira Rio'),
+  ('Boca da Mata'),
+  ('Bom Jesus'),
+  ('Bom Sucesso'),
+  ('Brasil Novo'),
+  ('Caema'),
+  ('Centro'),
+  ('Cidade Jardim'),
+  ('Cinco Irmãos'),
+  ('Coco Grande'),
+  ('Conjunto Habitar Brasil'),
+  ('Conjunto Planalto'),
+  ('Conjunto Sebastião Régis'),
+  ('Conjunto Nova Vitória'),
+  ('Distrito Industrial'),
+  ('Entroncamento'),
+  ('Imigrantes'),
+  ('Itamar Guará'),
+  ('Jardim América'),
+  ('Jardim Andrea'),
+  ('Jardim Camboriú'),
+  ('Jardim Cinco Estrelas'),
+  ('Jardim Cristo Rei'),
+  ('Jardim das Oliveiras'),
+  ('Jardim Democrata'),
+  ('Jardim Europa'),
+  ('Jardim Lagoa'),
+  ('Jardim Lopes'),
+  ('Jardim Morada do Sol'),
+  ('Jardim Oriental'),
+  ('Jardim Pérola'),
+  ('Jardim Planalto'),
+  ('Jardim Primavera'),
+  ('Jardim São Francisco'),
+  ('Jardim São Luís'),
+  ('Jardim Tropical'),
+  ('João Paulo II'),
+  ('Juçara'),
+  ('Lagoinha'),
+  ('Leandra'),
+  ('Loteamento Santa Clara'),
+  ('Maranhão Novo'),
+  ('Mata Verde'),
+  ('Mercadinho'),
+  ('Morada do Bosque'),
+  ('Mutirão'),
+  ('Nova Imperatriz'),
+  ('Novo Horizonte'),
+  ('Ouro Verde'),
+  ('Parque Alvorada'),
+  ('Parque Alvorada II'),
+  ('Parque Amazonas'),
+  ('Parque Anhanguera'),
+  ('Parque Avenida'),
+  ('Parque Buriti'),
+  ('Parque da Lagoa'),
+  ('Parque das Estrelas'),
+  ('Parque das Flores'),
+  ('Parque das Mangueiras'),
+  ('Parque das Mansões'),
+  ('Parque das Palmeiras'),
+  ('Parque das Palmeiras II'),
+  ('Parque do Bosque'),
+  ('Parque Independência'),
+  ('Parque Planalto'),
+  ('Parque Sanharol'),
+  ('Parque Santa Lúcia'),
+  ('Parque São José'),
+  ('Parque Sumaré'),
+  ('Parque Tocantins'),
+  ('Parque Vitória'),
+  ('Park Imperial'),
+  ('Portal da Amazônia'),
+  ('Recanto Estrela da Manhã'),
+  ('Recanto Universitário'),
+  ('Residencial Califórnia'),
+  ('Residencial Colina Park'),
+  ('Residencial Dom Afonso Felippe Gregory'),
+  ('Residencial Eco Park'),
+  ('Residencial Império Romano'),
+  ('Residencial Kubitschek'),
+  ('Residencial Sebastião Régis'),
+  ('Residencial Teotônio Vilela'),
+  ('Residencial Verona'),
+  ('Santa Inês'),
+  ('Santa Luzia'),
+  ('Santa Rita'),
+  ('Santo Amaro'),
+  ('São José do Egito'),
+  ('São Salvador'),
+  ('Setor Parque de Exposições'),
+  ('Setor Rodoviário'),
+  ('Sol Nascente'),
+  ('Super Quadra 602'),
+  ('Três Poderes'),
+  ('União'),
+  ('Vale do Sol'),
+  ('Vila Airton Senna'),
+  ('Vila Bandeirantes'),
+  ('Vila Brasil'),
+  ('Vila Cafeteira'),
+  ('Vila Carajás'),
+  ('Vila Esmeralda'),
+  ('Vila Fiquene'),
+  ('Vila Independente'),
+  ('Vila Ipiranga'),
+  ('Vila Jardim'),
+  ('Vila JK'),
+  ('Vila João Castelo'),
+  ('Vila Lobão'),
+  ('Vila Macedo'),
+  ('Vila Maderminas'),
+  ('Vila Maria'),
+  ('Vila Mariana'),
+  ('Vila Nova'),
+  ('Vila Parati'),
+  ('Vila Palmares'),
+  ('Vila Redenção'),
+  ('Vila Redenção II'),
+  ('Vila Verde'),
+  ('Vila Vitória'),
+  ('Vila Zenira'),
+  ('Vilinha')
+on conflict (nome) do nothing;
 
 -- ---------------------------------------------------------------------
 -- TORNAR UM USUÁRIO ADMIN

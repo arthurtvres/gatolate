@@ -1,4 +1,4 @@
-/* Painel da dona da loja (/admin): dashboard, pedidos e produtos.
+/* Painel da dona da loja (/admin): dashboard, pedidos, produtos, bairros e configurações.
    Carregado sob demanda (lazy) — clientes da loja não baixam este código. */
 import { Navigate, Route, Routes } from "react-router-dom";
 import { supabaseConfigurado } from "../lib/supabase";
@@ -7,6 +7,8 @@ import AvisoConfiguracao from "./componentes/AvisoConfiguracao";
 import LayoutAdmin from "./componentes/LayoutAdmin";
 import { useAvisosPedidos, VersaoPedidosContext } from "./hooks/useAvisosPedidos";
 import { useSessaoAdmin } from "./hooks/useSessaoAdmin";
+import Bairros from "./paginas/Bairros";
+import Configuracoes from "./paginas/Configuracoes";
 import Dashboard from "./paginas/Dashboard";
 import Login from "./paginas/Login";
 import Pedidos from "./paginas/Pedidos";
@@ -55,6 +57,8 @@ function PainelLogado({ email }) {
           <Route index element={<Dashboard />} />
           <Route path="pedidos" element={<Pedidos />} />
           <Route path="produtos" element={<Produtos />} />
+          <Route path="bairros" element={<Bairros />} />
+          <Route path="configuracoes" element={<Configuracoes />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </LayoutAdmin>

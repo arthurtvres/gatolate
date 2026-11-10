@@ -7,7 +7,8 @@ export const CHAVES = {
   cliente: "gatolate:cliente",
   pedidoEnviado: "gatolate:pedido-enviado",
   meusPedidos: "gatolate:meus-pedidos",
-  produtos: "gatolate:produtos"
+  produtos: "gatolate:produtos",
+  config: "gatolate:config"
 };
 
 /** Lê um valor salvo (JSON). Devolve `padrao` se não houver ou der erro. */

@@ -1,13 +1,13 @@
-import { Banknote, CreditCard, MapPin, Pencil, Phone, QrCode, Store, Truck, User } from "lucide-react";
+import { Banknote, CreditCard, Lock, MapPin, Pencil, Phone, QrCode, Store, Truck, User } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import BAIRROS from "../../config/bairros";
-import CONFIG from "../../config/loja";
 import { useCarrinho } from "../../hooks/useCarrinho";
+import { useConfigLoja } from "../../hooks/useConfigLoja";
 import { useProdutos } from "../../hooks/useProdutos";
 import { registrarPedidoDaLoja } from "../../services/pedidosApi";
 import { CHAVES, gravarLocal, lerLocal } from "../../utils/armazenamento";
 import { calcularResumo, textoNota, textoTotal } from "../../utils/carrinho";
+import { nomesBairros, taxaDoBairro, temTaxas } from "../../utils/configLoja";
 import { formatarEndereco, mascararTelefone } from "../../utils/formatacao";
 import { iconePagamento, nomePagamento } from "../../utils/pagamentos";
 import { validarCampo, validarFormulario } from "../../utils/validacao";
@@ -31,22 +31,22 @@ const DADOS_VAZIOS = {
   bairroOutro: false, // true = bairro digitado à mão (não está na lista)
   complemento: "",
   obs: "",
-  pagamento: "0" // posição em CONFIG.pagamentos
+  pagamento: "0" // posição na lista de pagamentos das configurações
 };
 
-function carregarDados() {
+function carregarDados(bairros) {
   const salvo = lerLocal(CHAVES.cliente, {}) || {};
   const cliente = {};
   CAMPOS_SALVOS.forEach((campo) => {
     if (typeof salvo[campo] === "string") cliente[campo] = salvo[campo];
   });
   // Bairro salvo que não está na lista: continua como "digitado à mão"
-  cliente.bairroOutro = Boolean(cliente.bairro) && !BAIRROS.includes(cliente.bairro);
+  cliente.bairroOutro = Boolean(cliente.bairro) && !bairros.includes(cliente.bairro);
   return { ...DADOS_VAZIOS, ...cliente };
 }
 
 /** true se todos os campos estão preenchidos e passam na validação. */
-const partesValidas = (dados, campos) => campos.every((c) => dados[c] && !validarCampo(c, dados));
+const partesValidas = (dados, campos, bairros) => campos.every((c) => dados[c] && !validarCampo(c, dados, bairros));
 
 const ICONES_PAGAMENTO = { pix: QrCode, dinheiro: Banknote, pagamento: CreditCard };
 
@@ -75,15 +75,20 @@ function CartaoSalvo({ titulo, rotuloAlterar, onAlterar, children }) {
 export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) {
   const { itens } = useCarrinho();
   const { porId } = useProdutos();
-  const [dados, setDados] = useState(carregarDados);
+  const config = useConfigLoja();
+  const bairros = useMemo(() => nomesBairros(config.bairros), [config.bairros]);
+  const [dados, setDados] = useState(() => carregarDados(bairros));
   const [erros, setErros] = useState({});
   // Dados salvos e válidos de um pedido anterior aparecem como cartão; "Alterar" abre os campos
   const [editando, setEditando] = useState(() => ({
-    contato: !partesValidas(dados, ["nome", "telefone"]),
-    endereco: !partesValidas({ ...dados, tipo: "entrega" }, CAMPOS_ENDERECO)
+    contato: !partesValidas(dados, ["nome", "telefone"], bairros),
+    endereco: !partesValidas({ ...dados, tipo: "entrega" }, CAMPOS_ENDERECO, bairros)
   }));
   const formRef = useRef(null);
-  const resumo = useMemo(() => calcularResumo(itens, porId, dados.tipo), [itens, porId, dados.tipo]);
+
+  const taxa = dados.tipo === "entrega" && !dados.bairroOutro ? taxaDoBairro(config.bairros, dados.bairro) : null;
+  const resumo = useMemo(() => calcularResumo(itens, porId, dados.tipo, taxa), [itens, porId, dados.tipo, taxa]);
+  const pausado = config.pedidosPausados;
 
   /** Aplica { campo: valor, ... } de uma vez (assim duas mudanças seguidas não se atropelam). */
   function atualizar(mudancas) {
@@ -94,10 +99,10 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
       const novos = { ...atuais };
       // O erro some assim que a pessoa corrige o campo
       Object.keys(mudancas).forEach((nome) => {
-        if (novos[nome]) novos[nome] = validarCampo(nome, proximos);
+        if (novos[nome]) novos[nome] = validarCampo(nome, proximos, bairros);
       });
       // Trocar entre lista e bairro livre muda a regra do bairro
-      if ("bairroOutro" in mudancas && novos.bairro) novos.bairro = validarCampo("bairro", proximos);
+      if ("bairroOutro" in mudancas && novos.bairro) novos.bairro = validarCampo("bairro", proximos, bairros);
       // Na retirada, endereço não é obrigatório: limpa os erros antigos
       if (mudancas.tipo === "retirada") CAMPOS_ENDERECO.forEach((c) => delete novos[c]);
       return novos;
@@ -112,17 +117,18 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
   // Ao sair de um campo já preenchido, confere se está certo
   const aoSair = (e) => {
     const { name, value } = e.target;
-    if (value) setErros((atuais) => ({ ...atuais, [name]: validarCampo(name, dados) }));
+    if (value) setErros((atuais) => ({ ...atuais, [name]: validarCampo(name, dados, bairros) }));
   };
 
   async function aoEnviar(e) {
     e.preventDefault();
+    if (pausado) return;
     if (resumo.quantidade === 0) {
       onVazio();
       return;
     }
 
-    const encontrados = validarFormulario(dados);
+    const encontrados = validarFormulario(dados, bairros);
     setErros(encontrados);
     const primeiroErro = Object.keys(encontrados)[0];
     if (primeiroErro) {
@@ -133,7 +139,7 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
       return;
     }
 
-    const pagamento = CONFIG.pagamentos[Number(dados.pagamento)] || CONFIG.pagamentos[0];
+    const pagamento = config.pagamentos[Number(dados.pagamento)] || config.pagamentos[0];
     const pedido = Object.fromEntries(
       Object.entries(dados).map(([campo, valor]) => [campo, typeof valor === "string" ? valor.trim() : valor])
     );
@@ -158,6 +164,7 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
 
   const entrega = dados.tipo === "entrega";
   const propsCampo = (nome) => ({ nome, value: dados[nome], onChange: aoMudar, onBlur: aoSair, erro: erros[nome] });
+  const nota = textoNota(resumo, dados.tipo, { taxasPorBairro: temTaxas(config.bairros), bairro: dados.bairro });
 
   return (
     <form className="formulario" ref={formRef} onSubmit={aoEnviar} noValidate>
@@ -224,6 +231,7 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
           <legend>Endereço de entrega</legend>
           <CampoTexto {...propsCampo("rua")} rotulo="Rua" obrigatorio type="text" autoComplete="address-line1" />
           <CampoBairro
+            opcoes={bairros}
             value={dados.bairro}
             outro={dados.bairroOutro}
             erro={erros.bairro}
@@ -247,7 +255,7 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
       <fieldset className="campo">
         <legend>Forma de pagamento</legend>
         <div className="opcoes opcoes--tres">
-          {CONFIG.pagamentos.map((p, i) => (
+          {config.pagamentos.map((p, i) => (
             <label className="opcao" key={p.nome}>
               <input
                 type="radio"
@@ -279,11 +287,25 @@ export default function FormularioPedido({ onVazio, onEditarItens, onEnviado }) 
           <span>Total</span>
           <strong>{textoTotal(resumo)}</strong>
         </div>
-        <p className="nota">{textoNota(resumo, dados.tipo)}</p>
-        <button className="btn btn--cheio btn--whatsapp" type="submit">
+        <p className="nota">{nota}</p>
+        {pausado && (
+          <p className="aviso-pausa" role="status">
+            No momento não estamos recebendo pedidos pelo site. Chama a gente no WhatsApp!
+          </p>
+        )}
+        <button className="btn btn--cheio btn--whatsapp" type="submit" disabled={pausado}>
           <Icone nome="whatsapp" />
           Enviar pedido pelo WhatsApp
         </button>
+        <p className="nota-privacidade">
+          <Lock aria-hidden="true" />
+          <span>
+            Seus dados estão seguros: usamos só para preparar e entregar seu pedido.{" "}
+            <a href="/privacidade" target="_blank" rel="noopener">
+              Saiba mais
+            </a>
+          </span>
+        </p>
       </div>
     </form>
   );

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/lint-arquivo.mjs",
+            "timeout": 30,
+            "statusMessage": "Rodando ESLint no arquivo editado..."
+          }
+        ]
+      }
+    ]
+  }
+}

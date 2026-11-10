@@ -1,10 +1,12 @@
 import CONFIG from "../../config/loja";
+import { useConfigLoja } from "../../hooks/useConfigLoja";
 import { linkWhatsApp } from "../../utils/whatsapp";
 import Icone from "../ui/Icone";
 import TituloDecorado from "../ui/TituloDecorado";
 
 export default function SecaoContato() {
-  const saudacao = CONFIG.textos.saudacaoContato || `Olá, ${CONFIG.nomeLoja}!`;
+  const { textos } = useConfigLoja();
+  const saudacao = textos.saudacaoContato || `Olá, ${CONFIG.nomeLoja}!`;
 
   return (
     <section className="contato container" id="contato" aria-labelledby="titulo-contato">

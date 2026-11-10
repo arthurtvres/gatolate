@@ -72,11 +72,13 @@ function montarRegistro(resumo, dados) {
       telefone: dados.telefone,
       tipo: dados.tipo,
       endereco: dados.tipo === "entrega" ? formatarEndereco(dados) : "",
+      // O servidor busca a taxa por este nome (bairro digitado à mão = a combinar)
+      bairro: dados.tipo === "entrega" && !dados.bairroOutro ? dados.bairro : "",
       observacoes: dados.obs,
       pagamento: dados.pagamento
     },
     itens: resumo.itens.map(({ produto, qtd }) => ({ produto_id: produto.id, quantidade: qtd })),
-    taxa: resumo.taxa
+    taxa: resumo.taxa // ignorado pelo banco atualizado; só vale para o schema antigo
   };
 }
 

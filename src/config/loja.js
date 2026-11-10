@@ -1,7 +1,11 @@
+/* Dados fixos da loja.
+   • whatsapp, nomeLoja e instagram só mudam aqui (por segurança, não ficam no painel).
+   • textos, beneficios e pagamentos são o PADRÃO: valem no modo demonstração e
+     enquanto o banco não responde. Com o Supabase, a dona edita em /admin/configuracoes.
+   • produtos: cardápio do modo demonstração (com o Supabase, vêm do banco). */
 const CONFIG = {
   whatsapp: "559991356768",
   nomeLoja: "Gatolate",
-  taxaEntrega: 0,
   instagram: "https://instagram.com/gaatolate",
   instagramUsuario: "@gaatolate",
   textos: {

@@ -5,3 +5,4 @@ import { createContext } from "react";
 export const CarrinhoContext = createContext(null);
 export const ToastContext = createContext(null);
 export const ProdutosContext = createContext(null);
+export const ConfigLojaContext = createContext(null);

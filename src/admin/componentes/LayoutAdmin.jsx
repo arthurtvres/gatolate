@@ -6,7 +6,9 @@ import BotaoAvisos from "./BotaoAvisos";
 const LINKS = [
   { para: "/admin", rotulo: "Dashboard", fim: true },
   { para: "/admin/pedidos", rotulo: "Pedidos", mostraNovos: true },
-  { para: "/admin/produtos", rotulo: "Produtos" }
+  { para: "/admin/produtos", rotulo: "Produtos" },
+  { para: "/admin/bairros", rotulo: "Bairros" },
+  { para: "/admin/configuracoes", rotulo: "Configurações" }
 ];
 
 export default function LayoutAdmin({ email, pedidosNovos = 0, children }) {
